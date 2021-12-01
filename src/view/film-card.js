@@ -1,3 +1,5 @@
+import {getYearFromDate} from '../utils.js';
+
 export const filmCard = (filmData = {}) => {
   const {
     title,
@@ -33,7 +35,7 @@ export const filmCard = (filmData = {}) => {
       <h3 class="film-card__title">${title}</h3>
       <p class="film-card__rating">${rating}</p>
       <p class="film-card__info">
-        <span class="film-card__year">${releaseYear}</span>
+        <span class="film-card__year">${getYearFromDate(releaseYear)}</span>
         <span class="film-card__duration">${runtime}</span>
         <span class="film-card__genre">${genre}</span>
       </p>

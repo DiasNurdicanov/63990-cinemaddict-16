@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 import {getRandomInteger, getRandomFloat} from '../utils.js';
 
 const titles = [
@@ -50,7 +52,7 @@ export const generateFilmCard = () => ({
   title: generateTitle(),
   poster: generatePoster(),
   description: generateDescription(),
-  comments: [1, 2],
+  comments: [1, 2, 3, 4],
   rating: generateRating(),
   isInWatchList: Boolean(getRandomInteger(0, 1)),
   isWatched: Boolean(getRandomInteger(0, 1)),
@@ -59,8 +61,8 @@ export const generateFilmCard = () => ({
     director: 'Anthony Mann',
     writers: 'Anne Wigton, Heinz Herald, Richard Weil',
     actors: 'Erich von Stroheim, Mary Beth Hughes, Dan Duryea',
-    releaseYear: '1929',
-    runtime: '1h 55m',
+    releaseYear: dayjs('1929-01-05').toDate(),
+    runtime: 115,
     country: 'USA',
     genres: ['Musical', 'Drama', 'Mystery']
   }

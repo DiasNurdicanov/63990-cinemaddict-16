@@ -1,7 +1,7 @@
 import {EMOJIS} from '../const.js';
 import {getRandomInteger} from '../utils.js';
 
-const texts = [
+const TEXTS = [
   'Booooooooooring',
   'Very very old. Meh',
   'Almost two hours? Seriously?',
@@ -14,8 +14,8 @@ const generateEmoji = () => {
 };
 
 const generateTexts = () => {
-  const randomIndex = getRandomInteger(0, texts.length - 1);
-  return texts[randomIndex];
+  const randomIndex = getRandomInteger(0, TEXTS.length - 1);
+  return TEXTS[randomIndex];
 };
 
 export const generateCommentItem = () => ({

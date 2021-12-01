@@ -1,26 +1,26 @@
-const taskToFilterMap = {
+const cardToFilterMap = {
   all: {
-    fn: (cards) => cards.length,
+    isMatch: (cards) => [...cards],
     title: 'All movies',
   },
   watchlist: {
-    fn: (cards) => cards.filter((task) => task.isInWatchList).length,
+    isMatch: (cards) => cards.filter((card) => card.isInWatchList),
     title: 'Watchlist'
   },
   watched: {
-    fn: (cards) => cards.filter((task) => task.isWatched).length,
+    isMatch: (cards) => cards.filter((card) => card.isWatched),
     title: 'History'
   },
   favorites: {
-    fn: (cards) => cards.filter((task) => task.isFavorite).length,
+    isMatch: (cards) => cards.filter((card) => card.isFavorite),
     title: 'Favorites'
   },
 };
 
-export const generateFilter = (cards) => Object.entries(taskToFilterMap).map(
-  ([filterName, {fn, title}]) => ({
+export const generateFilter = (cards) => Object.entries(cardToFilterMap).map(
+  ([filterName, {isMatch, title}]) => ({
     name: filterName,
-    count: fn(cards),
+    count: isMatch(cards).length,
     title
   }),
 );

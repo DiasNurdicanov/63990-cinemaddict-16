@@ -1,5 +1,14 @@
 import {EMOJIS} from '../const.js';
-import {capitalizeFirstLetter} from '../utils.js';
+import {capitalizeFirstLetter, convertTime, humanizeDate} from '../utils.js';
+
+const getAdditionalInfoValue = (term, value) => {
+  switch(term) {
+    case 'genres': return value.map((genre) => `<span class="film-details__genre">${genre}</span>`).join('');
+    case 'runtime': return convertTime(value);
+    case 'releaseYear': return humanizeDate(value);
+    default: return value;
+  }
+};
 
 const createPosterTemplate = (poster) => (
   `<div class="film-details__poster">
@@ -15,9 +24,7 @@ const createAdditionalInfoTemplate = (data) => (
         <tr class="film-details__row">
           <td class="film-details__term">${capitalizeFirstLetter(term).split(/(?=[A-Z])/).join(' ')}</td>
           <td class="film-details__cell">
-            ${term === 'genres'
-    ? `${value.map((genre) => `<span class="film-details__genre">${genre}</span>`).join('')}`
-    : `${value}`}
+            ${getAdditionalInfoValue(term, value)}
           </td>
         </tr>
       `).join('')}
