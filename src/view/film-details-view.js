@@ -1,5 +1,18 @@
 import {EMOJIS} from '../const.js';
 import {capitalizeFirstLetter, convertTime, humanizeDate} from '../utils.js';
+import {createElement} from '../render.js';
+
+const BLANK_CARD = {
+  title: '',
+  rating: null,
+  poster: '',
+  description: '',
+  comments: [],
+  isInWatchList: false,
+  isWatched: false,
+  isFavorite: false,
+  additionalInfo: {}
+};
 
 const getAdditionalInfoValue = (term, value) => {
   switch(term) {
@@ -112,16 +125,16 @@ const createCommentsTemplate = (commentIds, commentItems) => {
   </ul>`;
 };
 
-export const filmDetails = (filmData = {}, commentItems = []) => {
+export const createFilmDetailsTemplate = (filmData, commentItems) => {
   const {
     title,
     rating,
     poster,
     description,
-    comments = [],
-    isInWatchList = false,
-    isWatched = false,
-    isFavorite = false,
+    comments,
+    isInWatchList,
+    isWatched,
+    isFavorite,
     additionalInfo
   } = filmData;
 
@@ -157,3 +170,30 @@ export const filmDetails = (filmData = {}, commentItems = []) => {
     </form>
   </section>`;
 };
+
+export default class FilmDetailsView {
+  #element = null;
+  #card = null;
+  #commentItems = null;
+
+  constructor(card = BLANK_CARD, commentItems = []) {
+    this.#card = card;
+    this.#commentItems = commentItems;
+  }
+
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+
+    return this.#element;
+  }
+
+  get template() {
+    return createFilmDetailsTemplate(this.#card, this.#commentItems);
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+}
