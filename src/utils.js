@@ -12,9 +12,8 @@ export const getRandomFloat = (a = 0, b = 10) => (Math.random() * (b - a) + a).t
 export const capitalizeFirstLetter = (string) => string.charAt(0).toUpperCase() + string.slice(1);
 
 export const convertTime = (minutes) => {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${h}:${m}`;
+  const time = dayjs.duration(minutes, 'minutes');
+  return time.format('HH:mm');
 };
 
 export const getYearFromDate = (date) => dayjs(date).format('YYYY');

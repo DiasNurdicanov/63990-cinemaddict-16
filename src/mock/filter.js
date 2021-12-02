@@ -1,26 +1,26 @@
 const cardToFilterMap = {
   all: {
-    isMatch: (cards) => [...cards],
+    getCount: (cards) => cards.length,
     title: 'All movies',
   },
   watchlist: {
-    isMatch: (cards) => cards.filter((card) => card.isInWatchList),
+    getCount: (cards) => cards.filter((card) => card.isInWatchList).length,
     title: 'Watchlist'
   },
   watched: {
-    isMatch: (cards) => cards.filter((card) => card.isWatched),
+    getCount: (cards) => cards.filter((card) => card.isWatched).length,
     title: 'History'
   },
   favorites: {
-    isMatch: (cards) => cards.filter((card) => card.isFavorite),
+    getCount: (cards) => cards.filter((card) => card.isFavorite).length,
     title: 'Favorites'
   },
 };
 
 export const generateFilter = (cards) => Object.entries(cardToFilterMap).map(
-  ([filterName, {isMatch, title}]) => ({
+  ([filterName, {getCount, title}]) => ({
     name: filterName,
-    count: isMatch(cards).length,
+    count: getCount(cards),
     title
   }),
 );
