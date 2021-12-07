@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import {getRandomInteger, getRandomFloat} from '../utils.js';
+import {getRandomInteger, getRandomFloat} from '../utils/common.js';
 
 const titles = [
   'Sagebrush trail',

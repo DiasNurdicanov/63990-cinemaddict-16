@@ -1,5 +1,5 @@
-import {getYearFromDate} from '../utils.js';
-import {createElement} from '../render.js';
+import {getYearFromDate, convertTime} from '../utils/common.js';;
+import AbstractView from './abstract-view.js';
 
 const createFilmCardTemplate = (filmData = {}) => {
   const {
@@ -37,7 +37,7 @@ const createFilmCardTemplate = (filmData = {}) => {
       <p class="film-card__rating">${rating}</p>
       <p class="film-card__info">
         <span class="film-card__year">${getYearFromDate(releaseYear)}</span>
-        <span class="film-card__duration">${runtime}</span>
+        <span class="film-card__duration">${convertTime(runtime)}</span>
         <span class="film-card__genre">${genre}</span>
       </p>
       <img src="${poster}" alt="" class="film-card__poster">
@@ -52,27 +52,25 @@ const createFilmCardTemplate = (filmData = {}) => {
   </article>`;
 };
 
-export default class FilmCardView {
-  #element = null;
+export default class FilmCardView extends AbstractView {
   #card = null;
 
   constructor(card) {
+    super();
     this.#card = card;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
   }
 
   get template() {
     return createFilmCardTemplate(this.#card);
   }
 
-  removeElement() {
-    this.#element = null;
+  setClickHandler = (callback) => {
+    this._callback.click = callback;
+    this.element.querySelector('.film-card__link').addEventListener('click', this.#clickHandler);
+  }
+
+  #clickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.click();
   }
 }

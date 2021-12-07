@@ -1,6 +1,6 @@
 import {EMOJIS} from '../const.js';
-import {capitalizeFirstLetter, convertTime, humanizeDate} from '../utils.js';
-import {createElement} from '../render.js';
+import {capitalizeFirstLetter, convertTime, humanizeDate} from '../utils/common.js';
+import AbstractView from './abstract-view.js';
 
 const BLANK_CARD = {
   title: '',
@@ -125,7 +125,7 @@ const createCommentsTemplate = (commentIds, commentItems) => {
   </ul>`;
 };
 
-export const createFilmDetailsTemplate = (filmData, commentItems) => {
+const createFilmDetailsTemplate = (filmData, commentItems) => {
   const {
     title,
     rating,
@@ -171,29 +171,27 @@ export const createFilmDetailsTemplate = (filmData, commentItems) => {
   </section>`;
 };
 
-export default class FilmDetailsView {
-  #element = null;
+export default class FilmDetailsView extends AbstractView {
   #card = null;
   #commentItems = null;
 
   constructor(card = BLANK_CARD, commentItems = []) {
+    super();
     this.#card = card;
     this.#commentItems = commentItems;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
   }
 
   get template() {
     return createFilmDetailsTemplate(this.#card, this.#commentItems);
   }
 
-  removeElement() {
-    this.#element = null;
+  setCloseClickHandler = (callback) => {
+    this._callback.closeClick = callback;
+    this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#closeClickHandler);
+  }
+
+  #closeClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.closeClick();
   }
 }

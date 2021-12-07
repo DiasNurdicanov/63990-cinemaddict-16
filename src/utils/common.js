@@ -16,7 +16,10 @@ export const capitalizeFirstLetter = (string) => string.charAt(0).toUpperCase() 
 
 export const convertTime = (minutes) => {
   const time = dayjs.duration(minutes, 'minutes');
-  return time.format('HH:mm');
+  const h = time.hours();
+  const m = time.minutes();
+
+  return `${h > 0 ? `${h}h` : ''} ${m}m`;
 };
 
 export const getYearFromDate = (date) => dayjs(date).format('YYYY');

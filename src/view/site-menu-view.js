@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractView from './abstract-view.js';
 
 const createFilterItemTemplate = (filter, isActive) => {
   const {name, count, title} = filter;
@@ -11,7 +11,7 @@ const createFilterItemTemplate = (filter, isActive) => {
   );
 };
 
-export const createFilterTemplate = (filterItems) => {
+const createFilterTemplate = (filterItems) => {
   const filterItemsTemplate = filterItems
     .map((filter, index) => createFilterItemTemplate(filter, index === 0))
     .join('');
@@ -34,27 +34,15 @@ const createSiteMenuTemplate = (filterItems) => (
   </ul>`
 );
 
-export default class SiteMenuView {
-  #element = null;
+export default class SiteMenuView extends AbstractView {
   #filters = null;
 
   constructor(filters) {
+    super();
     this.#filters = filters;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
   }
 
   get template() {
     return createSiteMenuTemplate(this.#filters);
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }
