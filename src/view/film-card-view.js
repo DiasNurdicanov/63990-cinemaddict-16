@@ -1,5 +1,6 @@
 import {getYearFromDate, convertTime} from '../utils/common.js';;
 import AbstractView from './abstract-view.js';
+import {createElement} from '../utils/render.js';
 
 const createFilmCardTemplate = (filmData = {}) => {
   const {
@@ -54,6 +55,7 @@ const createFilmCardTemplate = (filmData = {}) => {
 
 export default class FilmCardView extends AbstractView {
   #card = null;
+  #renderedCards = [];
 
   constructor(card) {
     super();
@@ -64,13 +66,57 @@ export default class FilmCardView extends AbstractView {
     return createFilmCardTemplate(this.#card);
   }
 
+  createCopy() {
+    const copy = createElement(this.template);
+    copy.querySelector('.film-card__link').addEventListener('click', this.#clickHandler);
+    copy.querySelector('.film-card__controls-item--add-to-watchlist').addEventListener('click', this.#watchlistClickHandler);
+    copy.querySelector('.film-card__controls-item--mark-as-watched').addEventListener('click', this.#watchedClickHandler);
+    copy.querySelector('.film-card__controls-item--favorite').addEventListener('click', this.#favoriteClickHandler);
+
+    this.#renderedCards.push(copy);
+    return copy;
+  }
+
+  get renderedCards() {
+    return this.#renderedCards;
+  }
+
   setClickHandler = (callback) => {
     this._callback.click = callback;
-    this.element.querySelector('.film-card__link').addEventListener('click', this.#clickHandler);
   }
 
   #clickHandler = (evt) => {
     evt.preventDefault();
     this._callback.click();
+  }
+
+
+  setWatchlistClickHandler = (callback) => {
+    this._callback.watchlistClick = callback;
+  }
+
+  #watchlistClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.watchlistClick();
+  }
+
+
+  setWatchedClickHandler = (callback) => {
+    this._callback.watchedClick = callback;
+  }
+
+  #watchedClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.watchedClick();
+  }
+
+
+  setFavoriteClickHandler = (callback) => {
+    this._callback.favoriteClick = callback;
+  }
+
+  #favoriteClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.favoriteClick();
   }
 }
