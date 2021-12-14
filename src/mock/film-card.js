@@ -63,7 +63,7 @@ export const generateFilmCard = () => ({
     director: 'Anthony Mann',
     writers: 'Anne Wigton, Heinz Herald, Richard Weil',
     actors: 'Erich von Stroheim, Mary Beth Hughes, Dan Duryea',
-    releaseYear: dayjs('1929-01-05').toDate(),
+    releaseYear: dayjs(`${getRandomInteger(1929, 1970)}-01-05`).toDate(),
     runtime: 115,
     country: 'USA',
     genres: ['Musical', 'Drama', 'Mystery']

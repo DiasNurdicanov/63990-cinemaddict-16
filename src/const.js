@@ -18,3 +18,9 @@ export const FILM_LISTS = {
     isEmpty: true
   }
 };
+
+export const SortType = {
+  DEFAULT: 'default',
+  DATE: 'date',
+  RATING: 'rating',
+};

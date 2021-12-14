@@ -38,3 +38,7 @@ export const updateItem = (items, update) => {
     ...items.slice(index + 1),
   ];
 };
+
+export const sortByDate= (cardA, cardB) => getYearFromDate(cardA.additionalInfo.releaseYear) - getYearFromDate(cardB.additionalInfo.releaseYear);
+
+export const sortByRating = (cardA, cardB) => cardA.rating - cardB.rating;
