@@ -1,6 +1,6 @@
 import {EMOJIS} from '../const.js';
 import {capitalizeFirstLetter, convertTime, humanizeDate} from '../utils/common.js';
-import AbstractView from './abstract-view.js';
+import SmartView from './smart-view.js';
 
 const BLANK_CARD = {
   title: '',
@@ -85,9 +85,11 @@ const createControlsTemplate = (isInWatchList, isWatched, isFavorite) => {
   </section>`;
 };
 
-const createNewCommentTemplate = () => (
+const createNewCommentTemplate = ({emojiName}) => (
   `<div class="film-details__new-comment">
-    <div class="film-details__add-emoji-label"></div>
+    <div class="film-details__add-emoji-label">
+      ${emojiName ? `<img src="images/emoji/${emojiName}.png" width="55" height="55" alt="emoji-${emojiName}">` : ''}
+    </div>
 
     <label class="film-details__comment-label">
       <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
@@ -135,14 +137,15 @@ const createFilmDetailsTemplate = (filmData, commentItems) => {
     isInWatchList,
     isWatched,
     isFavorite,
-    additionalInfo
+    additionalInfo,
+    newCommentData
   } = filmData;
 
   const posterTemplate = createPosterTemplate(poster);
   const infoTemplate = createInfoTemplate(title, rating, description, additionalInfo);
   const controlsTemplate = createControlsTemplate(isInWatchList, isWatched, isFavorite);
   const commentsTemplate = createCommentsTemplate(comments, commentItems);
-  const newCommentTemplate = createNewCommentTemplate();
+  const newCommentTemplate = createNewCommentTemplate(newCommentData);
 
   return `<section class="film-details">
     <form class="film-details__inner" action="" method="get">
@@ -171,18 +174,34 @@ const createFilmDetailsTemplate = (filmData, commentItems) => {
   </section>`;
 };
 
-export default class FilmDetailsView extends AbstractView {
-  #card = null;
+export default class FilmDetailsView extends SmartView {
   #commentItems = null;
 
   constructor(card = BLANK_CARD, commentItems = []) {
     super();
-    this.#card = card;
+    this._data = FilmDetailsView.parseCardToData(card);
     this.#commentItems = commentItems;
+
+    this._setInnerHandlers();
   }
 
   get template() {
-    return createFilmDetailsTemplate(this.#card, this.#commentItems);
+    return createFilmDetailsTemplate(this._data, this.#commentItems);
+  }
+
+  static parseCardToData = (card) => ({...card,
+    newCommentData: {
+      emojiName: null,
+    },
+    scrollPosition: null
+  });
+
+  updateElement() {
+    super.updateElement();
+
+    if (this._data.scrollPosition) {
+      this.element.scrollTo(0, this._data.scrollPosition);
+    }
   }
 
   setCloseClickHandler = (callback) => {
@@ -226,5 +245,28 @@ export default class FilmDetailsView extends AbstractView {
   #favoriteClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.favoriteClick();
+  }
+
+  _setInnerHandlers() {
+    this.element.querySelectorAll('.film-details__emoji-item').forEach((item) => item.addEventListener('change', this.#emojiClickHandler));
+  }
+
+  restoreHandlers = () => {
+    this._setInnerHandlers();
+    this.setCloseClickHandler(this._callback.closeClick);
+    this.setWatchlistClickHandler(this._callback.watchlistClick);
+    this.setFavoriteClickHandler(this._callback.favoriteClick);
+    this.setWatchedClickHandler(this._callback.watchedClick);
+  }
+
+  #emojiClickHandler = (evt) => {
+    evt.preventDefault();
+
+    this.updateData({
+      newCommentData: {
+        emojiName: evt.target.value
+      },
+      scrollPosition: this.element.scrollTop
+    });
   }
 }
