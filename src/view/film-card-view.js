@@ -1,4 +1,4 @@
-import {getYearFromDate, convertTime} from '../utils/common.js';;
+import {getYearFromDate, convertTime} from '../utils/common.js';
 import AbstractView from './abstract-view.js';
 import {createElement} from '../utils/render.js';
 

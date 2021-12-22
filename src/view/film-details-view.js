@@ -251,7 +251,7 @@ export default class FilmDetailsView extends SmartView {
     this.element.querySelectorAll('.film-details__emoji-item').forEach((item) => item.addEventListener('change', this.#emojiClickHandler));
   }
 
-  restoreHandlers = () => {
+  restoreHandlers() {
     this._setInnerHandlers();
     this.setCloseClickHandler(this._callback.closeClick);
     this.setWatchlistClickHandler(this._callback.watchlistClick);

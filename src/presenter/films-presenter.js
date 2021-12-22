@@ -1,6 +1,6 @@
 import {FILM_LISTS, SortType} from '../const.js';
 
-import {render, RenderPosition, remove, replace, createElement} from '../utils/render.js';
+import {render, RenderPosition, remove, replace} from '../utils/render.js';
 import {updateItem} from '../utils/common.js';
 import {sortByDate, sortByRating} from '../utils/common.js';
 
