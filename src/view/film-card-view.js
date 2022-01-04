@@ -1,6 +1,6 @@
 import {getYearFromDate, convertTime} from '../utils/common.js';
 import AbstractView from './abstract-view.js';
-import {createElement} from '../utils/render.js';
+import {createElement, remove} from '../utils/render.js';
 
 const createFilmCardTemplate = (filmData = {}) => {
   const {
@@ -81,6 +81,10 @@ export default class FilmCardView extends AbstractView {
     return this.#renderedCards;
   }
 
+  set renderedCards(cards) {
+    this.#renderedCards = [...cards];
+  }
+
   setClickHandler = (callback) => {
     this._callback.click = callback;
   }
@@ -118,5 +122,11 @@ export default class FilmCardView extends AbstractView {
   #favoriteClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.favoriteClick();
+  }
+
+  destroy() {
+    this.renderedCards.forEach((card) => card.remove());
+    this.renderedCards = [];
+    remove(this);
   }
 }

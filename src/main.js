@@ -6,23 +6,40 @@ import FooterStatsView from './view/footer-stats-view';
 
 import {generateFilmCard} from './mock/film-card';
 import {generateCommentItem} from './mock/comment-item';
-import {generateFilter} from './mock/filter.js';
+
+import FilmsModel from './model/films-model.js';
+import CommentsModel from './model/films-model.js';
+import FilterModel from './model/filter-model.js';
 
 import FilmsPresenter from './presenter/films-presenter.js';
+import FilterPresenter from './presenter/filter-presenter.js';
 
-const CARD_COUNT = 20;
+
+const CARD_COUNT = 5;
 
 const filmCards = Array.from({ length: CARD_COUNT }, generateFilmCard);
 const commentItems = Array.from({ length: 4 }, generateCommentItem);
-const filters = generateFilter(filmCards);
 
 const siteMainElement = document.querySelector('.main');
 const siteHeaderElement = document.querySelector('.header');
 const footerStatsWrapElement = document.querySelector('.footer__statistics');
 
+const siteMenuComponent = new SiteMenuView();
 render(siteHeaderElement, new ProfileView(), RenderPosition.BEFOREEND);
-render(siteMainElement, new SiteMenuView(filters), RenderPosition.BEFOREEND);
+render(siteMainElement, siteMenuComponent, RenderPosition.BEFOREEND);
 render(footerStatsWrapElement, new FooterStatsView(filmCards.length), RenderPosition.BEFOREEND);
 
-const filmsPresenter = new FilmsPresenter(siteMainElement);
-filmsPresenter.init(filmCards, commentItems);
+const filmsModel = new FilmsModel();
+filmsModel.cardsData = filmCards;
+
+const commentsModel = new CommentsModel();
+commentsModel.commentItems = commentItems;
+
+const filterModel = new FilterModel();
+
+const filmsPresenter = new FilmsPresenter(siteMainElement, filmsModel, commentsModel, filterModel);
+const filterPresenter = new FilterPresenter(siteMenuComponent, filterModel, filmsModel);
+
+
+filterPresenter.init();
+filmsPresenter.init();
