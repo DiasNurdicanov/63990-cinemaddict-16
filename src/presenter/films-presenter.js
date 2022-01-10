@@ -1,7 +1,7 @@
 import {FILM_LISTS, SortType, UserAction, UpdateType, FilterType} from '../const.js';
 
 import {render, RenderPosition, remove, replace} from '../utils/render.js';
-import {sortByDate, sortByRating} from '../utils/common.js';
+import {sortByDate, sortByRating, removeItem} from '../utils/common.js';
 import {filter} from '../utils/filter.js';
 
 
@@ -43,6 +43,7 @@ export default class FilmsPresenter {
     this.#listsContainer = listsContainer;
 
     this.#filmsModel = filmsModel;
+
     this.#commentsModel = commentsModel;
     this.#filterModel = filterModel;
 
@@ -93,15 +94,27 @@ export default class FilmsPresenter {
     });
 
     filmCardComponent.setWatchlistClickHandler(() => {
-      this._handleViewAction(UserAction.UPDATE_CARD, UpdateType.MINOR, {...cardData, isInWatchList: !cardData.isInWatchList});
+      this._handleViewAction({
+        actionType: UserAction.UPDATE_CARD, 
+        updateType: UpdateType.MINOR, 
+        cardData: {...cardData, isInWatchList: !cardData.isInWatchList}
+      });
     });
 
     filmCardComponent.setWatchedClickHandler(() => {
-      this._handleViewAction(UserAction.UPDATE_CARD, UpdateType.MINOR, {...cardData, isWatched: !cardData.isWatched});
+      this._handleViewAction({
+        actionType: UserAction.UPDATE_CARD, 
+        updateType: UpdateType.MINOR, 
+        cardData: {...cardData, isWatched: !cardData.isWatched}
+      });
     });
 
     filmCardComponent.setFavoriteClickHandler(() => {
-      this._handleViewAction(UserAction.UPDATE_CARD, UpdateType.MINOR, {...cardData, isFavorite: !cardData.isFavorite});
+      this._handleViewAction({
+        actionType: UserAction.UPDATE_CARD, 
+        updateType: UpdateType.MINOR, 
+        cardData: {...cardData, isFavorite: !cardData.isFavorite}
+      });
     });
 
     if (!prevFilmCardComponent) {
@@ -170,15 +183,45 @@ export default class FilmsPresenter {
     });
 
     this.#filmDetailsPopup.setWatchlistClickHandler(() => {
-      this._filmCardUpdate({...cardData, isInWatchList: !cardData.isInWatchList});
+      this._handleViewAction({
+        actionType: UserAction.UPDATE_CARD, 
+        updateType: UpdateType.PATCH, 
+        cardData: {...cardData, isInWatchList: !cardData.isInWatchList}
+      });
     });
 
     this.#filmDetailsPopup.setWatchedClickHandler(() => {
-      this._filmCardUpdate({...cardData, isWatched: !cardData.isWatched});
+      this._handleViewAction({
+        actionType: UserAction.UPDATE_CARD, 
+        updateType: UpdateType.PATCH, 
+        cardData: {...cardData, isWatched: !cardData.isWatched}
+      });
     });
 
     this.#filmDetailsPopup.setFavoriteClickHandler(() => {
-      this._filmCardUpdate({...cardData, isFavorite: !cardData.isFavorite});
+      this._handleViewAction({
+        actionType: UserAction.UPDATE_CARD, 
+        updateType: UpdateType.PATCH, 
+        cardData: {...cardData, isFavorite: !cardData.isFavorite}
+      });
+    });
+
+    this.#filmDetailsPopup.setDeleteClickHandler((update) => {
+      this._handleViewAction({
+        actionType: UserAction.DELETE_COMMENT, 
+        updateType: UpdateType.PATCH, 
+        cardData: {...cardData, comments: removeItem(cardData.comments, update.id)},
+        commentData: update
+      });
+    });
+
+    this.#filmDetailsPopup.setFormSubmitHandler((update) => {
+      this._handleViewAction({
+        actionType: UserAction.ADD_COMMENT, 
+        updateType: UpdateType.PATCH, 
+        cardData: {...cardData, comments: [...cardData.comments, update.id]},
+        commentData: update
+      });
     });
   }
 
@@ -250,17 +293,25 @@ export default class FilmsPresenter {
     remove(this.#loadMoreButtonComponent);
   }
 
-  _handleViewAction = (actionType, updateType, update) => {
+  _handleViewAction = ({actionType, updateType, cardData, commentData}) => {
     switch (actionType) {
       case UserAction.UPDATE_CARD:
-        this.#filmsModel.updateCard(updateType, update);
+        this.#filmsModel.updateCard(updateType, cardData);
+        break;
+      case UserAction.DELETE_COMMENT:
+        this.#commentsModel.deleteComment(commentData);
+        this.#filmsModel.updateCard(updateType, cardData);
+        break;
+      case UserAction.ADD_COMMENT:
+        this.#commentsModel.addComment(commentData);
+        this.#filmsModel.updateCard(updateType, cardData);
         break;
     }
   }
 
   _handleModelEvent = (updateType, data) => {
     switch (updateType) {
-      case UpdateType.PATCH:
+      case UpdateType.PATCH: 
         this._renderFilmCard(data);
 
         if (this.#filmDetailsPopup) {
@@ -302,4 +353,5 @@ export default class FilmsPresenter {
       this.#currentSortType = SortType.DEFAULT;
     }
   }
+
 }

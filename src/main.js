@@ -8,7 +8,7 @@ import {generateFilmCard} from './mock/film-card';
 import {generateCommentItem} from './mock/comment-item';
 
 import FilmsModel from './model/films-model.js';
-import CommentsModel from './model/films-model.js';
+import CommentsModel from './model/comments-model.js';
 import FilterModel from './model/filter-model.js';
 
 import FilmsPresenter from './presenter/films-presenter.js';
@@ -18,7 +18,7 @@ import FilterPresenter from './presenter/filter-presenter.js';
 const CARD_COUNT = 5;
 
 const filmCards = Array.from({ length: CARD_COUNT }, generateFilmCard);
-const commentItems = Array.from({ length: 4 }, generateCommentItem);
+const commentItems = Array.from({ length: 4 }).map((item, index) => generateCommentItem(`${index + 1}`));
 
 const siteMainElement = document.querySelector('.main');
 const siteHeaderElement = document.querySelector('.header');

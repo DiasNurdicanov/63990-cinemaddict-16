@@ -42,3 +42,17 @@ export const updateItem = (items, update) => {
 export const sortByDate= (cardA, cardB) => getYearFromDate(cardA.additionalInfo.releaseYear) - getYearFromDate(cardB.additionalInfo.releaseYear);
 
 export const sortByRating = (cardA, cardB) => cardA.rating - cardB.rating;
+
+
+export const removeItem = (items, id) => {
+  const index = items.findIndex((item) => item === id);
+
+  if (index === -1) {
+    return items;
+  }
+
+  return [
+    ...items.slice(0, index),
+    ...items.slice(index + 1),
+  ];
+};

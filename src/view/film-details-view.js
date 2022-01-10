@@ -1,6 +1,7 @@
 import {EMOJIS} from '../const.js';
 import {capitalizeFirstLetter, convertTime, humanizeDate} from '../utils/common.js';
 import SmartView from './smart-view.js';
+import {nanoid} from 'nanoid';
 
 const BLANK_CARD = {
   title: '',
@@ -85,29 +86,31 @@ const createControlsTemplate = (isInWatchList, isWatched, isFavorite) => {
   </section>`;
 };
 
-const createNewCommentTemplate = ({emojiName}) => (
+const createNewCommentTemplate = ({emojiName, textareaText}) => (
   `<div class="film-details__new-comment">
     <div class="film-details__add-emoji-label">
       ${emojiName ? `<img src="images/emoji/${emojiName}.png" width="55" height="55" alt="emoji-${emojiName}">` : ''}
     </div>
 
     <label class="film-details__comment-label">
-      <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
+      <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${textareaText ? textareaText : ''}</textarea>
     </label>
 
     <div class="film-details__emoji-list">
-      ${EMOJIS.map((emoji) => `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}">
+      ${EMOJIS.map((emoji) => `<input class="film-details__emoji-item visually-hidden ${emojiName === emoji ? 'film-details__emoji-item--active' : ''}" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}">
         <label class="film-details__emoji-label" for="emoji-${emoji}">
           <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="emoji">
         </label>`).join('')}
     </div>
+
+    <button class="film-details__submit-btn" type="button">Добавить</button>
   </div>`
 );
 
 const createCommentsTemplate = (commentIds, commentItems) => {
-  const items = commentIds.map((id, i) => {
-    const {emoji, text, author, date} = commentItems[i];
-    return `<li class="film-details__comment">
+  const items = commentIds.map((item, i) => {
+    const {emoji, text, author, date, id} = commentItems[i];
+    return `<li class="film-details__comment" data-id="${id}">
       <span class="film-details__comment-emoji">
         <img src="./images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji}">
       </span>
@@ -257,6 +260,7 @@ export default class FilmDetailsView extends SmartView {
     this.setWatchlistClickHandler(this._callback.watchlistClick);
     this.setFavoriteClickHandler(this._callback.favoriteClick);
     this.setWatchedClickHandler(this._callback.watchedClick);
+    this.setFormSubmitHandler(this._callback.formSubmit);
   }
 
   #emojiClickHandler = (evt) => {
@@ -264,9 +268,42 @@ export default class FilmDetailsView extends SmartView {
 
     this.updateData({
       newCommentData: {
-        emojiName: evt.target.value
+        emojiName: evt.target.value,
+        textareaText: this.element.querySelector('.film-details__comment-input').value
       },
-      scrollPosition: this.element.scrollTop
+      scrollPosition: this.element.scrollTop,
     });
   }
+
+  setDeleteClickHandler = (callback) => {
+    this._callback.deleteClick = callback;
+    this.element.querySelectorAll('.film-details__comment-delete').forEach((item) => item.addEventListener('click', this.#deleteClickHandler));
+  }
+
+  #deleteClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.deleteClick({
+      id: evt.target.closest('.film-details__comment').dataset.id
+    });
+  }
+
+  setFormSubmitHandler = (callback) => {
+    this._callback.formSubmit = callback;
+    this.element.querySelector('.film-details__submit-btn').addEventListener('click', this.#formSubmitHandler);
+  }
+
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.formSubmit(this._parseNewCommentData());
+  }
+
+  _parseNewCommentData() {
+    return {
+      id: nanoid(),
+      emoji: this.element.querySelector('.film-details__emoji-item--active').value,
+      text: this.element.querySelector('.film-details__comment-input').value,
+      author: 'John Doe',
+      date: '2019/12/31 23:59',
+    }
+  };
 }

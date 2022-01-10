@@ -54,7 +54,7 @@ export const generateFilmCard = () => ({
   title: generateTitle(),
   poster: generatePoster(),
   description: generateDescription(),
-  comments: [1, 2, 3, 4],
+  comments: ['1', '2', '3', '4'],
   rating: generateRating(),
   isInWatchList: Boolean(getRandomInteger(0, 1)),
   isWatched: Boolean(getRandomInteger(0, 1)),

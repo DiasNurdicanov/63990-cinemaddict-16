@@ -1,5 +1,6 @@
 import {EMOJIS} from '../const.js';
 import {getRandomInteger} from '../utils/common.js';
+import {nanoid} from 'nanoid';
 
 const TEXTS = [
   'Booooooooooring',
@@ -18,7 +19,8 @@ const generateTexts = () => {
   return TEXTS[randomIndex];
 };
 
-export const generateCommentItem = () => ({
+export const generateCommentItem = (id) => ({
+  id,
   emoji: generateEmoji(),
   text: generateTexts(),
   author: 'John Doe',
