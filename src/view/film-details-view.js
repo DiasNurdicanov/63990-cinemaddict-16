@@ -1,5 +1,5 @@
 import {EMOJIS} from '../const.js';
-import {capitalizeFirstLetter, convertTime, humanizeDate} from '../utils/common.js';
+import {capitalizeFirstLetter, convertTime, humanizeDate, getDateWithTime} from '../utils/common.js';
 import SmartView from './smart-view.js';
 import {nanoid} from 'nanoid';
 
@@ -107,18 +107,18 @@ const createNewCommentTemplate = ({emojiName, textareaText}) => (
   </div>`
 );
 
-const createCommentsTemplate = (commentIds, commentItems) => {
-  const items = commentIds.map((item, i) => {
-    const {emoji, text, author, date, id} = commentItems[i];
+const createCommentsTemplate = (commentItems) => {
+  const items = commentItems.map((item) => {
+    const {emotion, comment, author, date, id} = item;
     return `<li class="film-details__comment" data-id="${id}">
       <span class="film-details__comment-emoji">
-        <img src="./images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji}">
+        <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="emoji-${emotion}">
       </span>
       <div>
-        <p class="film-details__comment-text">${text}</p>
+        <p class="film-details__comment-text">${comment}</p>
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${author}</span>
-          <span class="film-details__comment-day">${date}</span>
+          <span class="film-details__comment-day">${getDateWithTime(date)}</span>
           <button class="film-details__comment-delete">Delete</button>
         </p>
       </div>
@@ -147,7 +147,7 @@ const createFilmDetailsTemplate = (filmData, commentItems) => {
   const posterTemplate = createPosterTemplate(poster);
   const infoTemplate = createInfoTemplate(title, rating, description, additionalInfo);
   const controlsTemplate = createControlsTemplate(isInWatchList, isWatched, isFavorite);
-  const commentsTemplate = createCommentsTemplate(comments, commentItems);
+  const commentsTemplate = commentItems.length ? createCommentsTemplate(commentItems) : 'Loading...';
   const newCommentTemplate = createNewCommentTemplate(newCommentData);
 
   return `<section class="film-details">
@@ -205,6 +205,12 @@ export default class FilmDetailsView extends SmartView {
     if (this._data.scrollPosition) {
       this.element.scrollTo(0, this._data.scrollPosition);
     }
+  }
+
+  updateComments(commentItems) {
+    this.#commentItems = commentItems;
+    this.updateElement(this.#commentItems);
+    this.restoreHandlers();
   }
 
   setCloseClickHandler = (callback) => {
@@ -304,6 +310,6 @@ export default class FilmDetailsView extends SmartView {
       text: this.element.querySelector('.film-details__comment-input').value,
       author: 'John Doe',
       date: '2019/12/31 23:59',
-    }
-  };
+    };
+  }
 }

@@ -39,6 +39,9 @@ export default class FilmsPresenter {
   #sortComponent = null;
   #loadMoreButtonComponent = null;
 
+  #loadingComponent = new FilmsListView(FILM_LISTS.loading);;
+  #isLoading = true;
+
   constructor(listsContainer, filmsModel, commentsModel, filterModel) {
     this.#listsContainer = listsContainer;
 
@@ -49,6 +52,7 @@ export default class FilmsPresenter {
 
     this.#filmsModel.addObserver(this._handleModelEvent);
     this.#filterModel.addObserver(this._handleModelEvent);
+    this.#commentsModel.addObserver(this._handleModelEvent);
   }
 
   get cardsData() {
@@ -169,7 +173,9 @@ export default class FilmsPresenter {
       }
     };
 
-    this.#filmDetailsPopup = new FilmDetailsView(cardData, this.commentItems);
+    const commentItems = this.#commentsModel.getСommentItems(cardData.id);
+
+    this.#filmDetailsPopup = new FilmDetailsView(cardData, commentItems);
     render(document.body, this.#filmDetailsPopup, RenderPosition.BEFOREEND);
 
     document.body.classList.add('hide-overflow');
@@ -251,6 +257,11 @@ export default class FilmsPresenter {
   }
 
   _renderFilms() {
+    if (this.#isLoading) {
+      this._renderLoading();
+      return;
+    }
+
     const cards = this.cardsData;
     const cardsCount = cards.length;
 
@@ -313,6 +324,14 @@ export default class FilmsPresenter {
         this._clearBoard({resetRenderedCardCount: true, resetSortType: true});
         this._renderFilms();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this._renderFilms();
+        break;
+      case UpdateType.LOADED_COMMENTS:
+        this.#filmDetailsPopup.updateComments(this.commentItems);
+        break;
     }
   }
 
@@ -325,6 +344,7 @@ export default class FilmsPresenter {
     remove(this.#mainFilmsListComponent);
     remove(this.#loadMoreButtonComponent);
     remove(this.#sortComponent);
+    remove(this.#loadingComponent);
 
     if (this.#noFilmsComponent) {
       remove(this.#noFilmsComponent);
@@ -339,6 +359,10 @@ export default class FilmsPresenter {
     if (resetSortType) {
       this.#currentSortType = SortType.DEFAULT;
     }
+  }
+
+  _renderLoading() {
+    render(this.#filmsComponent, this.#loadingComponent, RenderPosition.AFTERBEGIN);
   }
 
 }

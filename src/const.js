@@ -15,6 +15,9 @@ export const FILM_LISTS = {
   },
   empty: {
     isEmpty: true
+  },
+  loading: {
+    title: 'Loading...',
   }
 };
 
@@ -34,6 +37,8 @@ export const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
   MAJOR: 'MAJOR',
+  INIT: 'INIT',
+  LOADED_COMMENTS: 'LOADED_COMMENTS'
 };
 
 export const FilterType = {

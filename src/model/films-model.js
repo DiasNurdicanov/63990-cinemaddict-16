@@ -1,7 +1,25 @@
 import AbstractObservable from '../utils/abstract-observable.js';
+import {UpdateType} from '../const.js';
 
 export default class FilmsModel extends AbstractObservable {
   #cardsData = [];
+  #apiService = null;
+
+  constructor(apiService) {
+    super();
+    this.#apiService = apiService;
+  }
+
+  init = async () => {
+    try {
+      const cards = await this.#apiService.cards;
+      this.#cardsData = cards.map(this.#adaptToClient);
+    } catch(err) {
+      this.#cardsData = [];
+    }
+
+    this._notify(UpdateType.INIT);
+  }
 
   get cardsData() {
     return this.#cardsData;
@@ -11,20 +29,62 @@ export default class FilmsModel extends AbstractObservable {
     this.#cardsData = [...cardsData];
   }
 
-  updateCard = (updateType, update) => {
+  updateCard = async (updateType, update) => {
     const index = this.#cardsData.findIndex((card) => card.id === update.id);
 
     if (index === -1) {
       throw new Error('Can\'t update unexisting card');
     }
 
-    this.#cardsData = [
-      ...this.#cardsData.slice(0, index),
-      update,
-      ...this.#cardsData.slice(index + 1),
-    ];
+    try {
+      const response = await this.#apiService.updateCard(update);
+      const updatedCard = this.#adaptToClient(response);
+
+      this.#cardsData = [
+        ...this.#cardsData.slice(0, index),
+        updatedCard,
+        ...this.#cardsData.slice(index + 1),
+      ];
+
+      this._notify(updateType, update);
+
+    } catch(err) {
+      throw new Error('Can\'t update task');
+    }
+  }
 
 
-    this._notify(updateType, update);
+  #adaptToClient = (card) => {
+    const userDetails = {...card['user_details']};
+    const filmInfo = {...card['film_info']};
+    const release = filmInfo.release;
+
+    const adaptedCard = {...card,
+      isInWatchList: userDetails['watchlist'],
+      isFavorite: userDetails['favorite'],
+      isWatched: userDetails['already_watched'],
+      watchedDate: userDetails['watching_date'],
+      poster: filmInfo['poster'],
+      rating: filmInfo['total_rating'],
+      title: filmInfo['title'],
+      description: filmInfo['description'],
+      alternativeTitle: filmInfo['alternative_title'],
+      ageRating: filmInfo['age_rating'],
+      additionalInfo: {
+        actors: filmInfo['actors'],
+        director: filmInfo['director'],
+        genres: filmInfo['genre'],
+        runtime: filmInfo['runtime'],
+        writers: filmInfo['writers'],
+        country: release['release_country'],
+        releaseYear: release['date'],
+      }
+    };
+
+    // Ненужные ключи мы удаляем
+    delete adaptedCard['user_details'];
+    delete adaptedCard['film_info'];
+
+    return adaptedCard;
   }
 }
