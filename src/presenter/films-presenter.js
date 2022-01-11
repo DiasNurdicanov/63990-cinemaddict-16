@@ -71,8 +71,6 @@ export default class FilmsPresenter {
   }
 
   init() {
-    this._renderSort();
-
     render(this.#listsContainer, this.#filmsComponent, RenderPosition.BEFOREEND);
 
     this._renderFilms();
@@ -95,24 +93,24 @@ export default class FilmsPresenter {
 
     filmCardComponent.setWatchlistClickHandler(() => {
       this._handleViewAction({
-        actionType: UserAction.UPDATE_CARD, 
-        updateType: UpdateType.MINOR, 
+        actionType: UserAction.UPDATE_CARD,
+        updateType: UpdateType.MINOR,
         cardData: {...cardData, isInWatchList: !cardData.isInWatchList}
       });
     });
 
     filmCardComponent.setWatchedClickHandler(() => {
       this._handleViewAction({
-        actionType: UserAction.UPDATE_CARD, 
-        updateType: UpdateType.MINOR, 
+        actionType: UserAction.UPDATE_CARD,
+        updateType: UpdateType.MINOR,
         cardData: {...cardData, isWatched: !cardData.isWatched}
       });
     });
 
     filmCardComponent.setFavoriteClickHandler(() => {
       this._handleViewAction({
-        actionType: UserAction.UPDATE_CARD, 
-        updateType: UpdateType.MINOR, 
+        actionType: UserAction.UPDATE_CARD,
+        updateType: UpdateType.MINOR,
         cardData: {...cardData, isFavorite: !cardData.isFavorite}
       });
     });
@@ -184,32 +182,32 @@ export default class FilmsPresenter {
 
     this.#filmDetailsPopup.setWatchlistClickHandler(() => {
       this._handleViewAction({
-        actionType: UserAction.UPDATE_CARD, 
-        updateType: UpdateType.PATCH, 
+        actionType: UserAction.UPDATE_CARD,
+        updateType: UpdateType.PATCH,
         cardData: {...cardData, isInWatchList: !cardData.isInWatchList}
       });
     });
 
     this.#filmDetailsPopup.setWatchedClickHandler(() => {
       this._handleViewAction({
-        actionType: UserAction.UPDATE_CARD, 
-        updateType: UpdateType.PATCH, 
+        actionType: UserAction.UPDATE_CARD,
+        updateType: UpdateType.PATCH,
         cardData: {...cardData, isWatched: !cardData.isWatched}
       });
     });
 
     this.#filmDetailsPopup.setFavoriteClickHandler(() => {
       this._handleViewAction({
-        actionType: UserAction.UPDATE_CARD, 
-        updateType: UpdateType.PATCH, 
+        actionType: UserAction.UPDATE_CARD,
+        updateType: UpdateType.PATCH,
         cardData: {...cardData, isFavorite: !cardData.isFavorite}
       });
     });
 
     this.#filmDetailsPopup.setDeleteClickHandler((update) => {
       this._handleViewAction({
-        actionType: UserAction.DELETE_COMMENT, 
-        updateType: UpdateType.PATCH, 
+        actionType: UserAction.DELETE_COMMENT,
+        updateType: UpdateType.PATCH,
         cardData: {...cardData, comments: removeItem(cardData.comments, update.id)},
         commentData: update
       });
@@ -217,8 +215,8 @@ export default class FilmsPresenter {
 
     this.#filmDetailsPopup.setFormSubmitHandler((update) => {
       this._handleViewAction({
-        actionType: UserAction.ADD_COMMENT, 
-        updateType: UpdateType.PATCH, 
+        actionType: UserAction.ADD_COMMENT,
+        updateType: UpdateType.PATCH,
         cardData: {...cardData, comments: [...cardData.comments, update.id]},
         commentData: update
       });
@@ -253,7 +251,6 @@ export default class FilmsPresenter {
   }
 
   _renderFilms() {
-
     const cards = this.cardsData;
     const cardsCount = cards.length;
 
@@ -262,6 +259,7 @@ export default class FilmsPresenter {
       return;
     }
 
+    this._renderSort();
     this._renderFilmLists();
   }
 
@@ -271,26 +269,15 @@ export default class FilmsPresenter {
     }
 
     this.#currentSortType = sortType;
-    this._clearCardList();
-    this._renderFilmLists();
+    this._clearBoard();
+    this._renderFilms();
   }
 
   _renderSort() {
     this.#sortComponent = new SortView(this.#currentSortType);
     this.#sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
 
-    render(this.#listsContainer, this.#sortComponent, RenderPosition.BEFOREEND);
-  }
-
-  _clearCardList() {
-    this.#filmCards.forEach((card) => {
-      card.renderedCards.forEach((renderedCard) => renderedCard.remove());
-      card.renderedCards.length = 0;
-      remove(card);
-    });
-    this.#filmCards.clear();
-    this.#renderedFilmCardsCount = CARD_COUNT_PER_STEP;
-    remove(this.#loadMoreButtonComponent);
+    render(this.#filmsComponent, this.#sortComponent, RenderPosition.BEFOREEND);
   }
 
   _handleViewAction = ({actionType, updateType, cardData, commentData}) => {
@@ -311,7 +298,7 @@ export default class FilmsPresenter {
 
   _handleModelEvent = (updateType, data) => {
     switch (updateType) {
-      case UpdateType.PATCH: 
+      case UpdateType.PATCH:
         this._renderFilmCard(data);
 
         if (this.#filmDetailsPopup) {

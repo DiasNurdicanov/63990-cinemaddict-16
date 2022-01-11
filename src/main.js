@@ -15,7 +15,7 @@ import FilmsPresenter from './presenter/films-presenter.js';
 import FilterPresenter from './presenter/filter-presenter.js';
 
 
-const CARD_COUNT = 5;
+const CARD_COUNT = 20;
 
 const filmCards = Array.from({ length: CARD_COUNT }, generateFilmCard);
 const commentItems = Array.from({ length: 4 }).map((item, index) => generateCommentItem(`${index + 1}`));
