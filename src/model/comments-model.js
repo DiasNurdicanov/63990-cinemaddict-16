@@ -26,28 +26,33 @@ export default class CommentsModel extends AbstractObservable {
       this.#commentItems = [];
     }
 
-    this._notify(UpdateType.LOADED_COMMENTS);
+    this._notify(UpdateType.LOADED_COMMENTS, {commentItems: this.#commentItems});
 
     return this.#commentItems;
   }
 
-  deleteComment(data) {
-    const index = this.#commentItems.findIndex((comment) => comment.id === data.id);
+  deleteComment = async (updateType, update, cardId) => {
+    const index = this.#commentItems.findIndex((comment) => comment.id === update.id);
 
-    if (index === -1) {
-      throw new Error('Can\'t delete unexisting comment');
+    try {
+      await this.#apiService.deleteComment(update, cardId);
+      this.#commentItems = [
+        ...this.#commentItems.slice(0, index),
+        ...this.#commentItems.slice(index + 1),
+      ];
+      this._notify(updateType, {commentItems: this.#commentItems});
+    } catch(err) {
+      throw new Error('Can\'t delete comment');
     }
-
-    this.#commentItems = [
-      ...this.#commentItems.slice(0, index),
-      ...this.#commentItems.slice(index + 1),
-    ];
   }
 
-  addComment(newComment) {
-    this.#commentItems = [
-      ...this.#commentItems,
-      newComment,
-    ];
+  addComment = async (updateType, update, cardId) => {
+    try {
+      const response = await this.#apiService.addComment(update, cardId);
+      this.#commentItems = [...response.comments];
+      this._notify(updateType, {commentItems: this.#commentItems, clearForm: true});
+    } catch(err) {
+      throw new Error('Can\'t add comment');
+    }
   }
 }

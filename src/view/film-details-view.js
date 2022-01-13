@@ -1,7 +1,6 @@
 import {EMOJIS} from '../const.js';
 import {capitalizeFirstLetter, convertTime, humanizeDate, getDateWithTime} from '../utils/common.js';
 import SmartView from './smart-view.js';
-import {nanoid} from 'nanoid';
 
 const BLANK_CARD = {
   title: '',
@@ -86,28 +85,26 @@ const createControlsTemplate = (isInWatchList, isWatched, isFavorite) => {
   </section>`;
 };
 
-const createNewCommentTemplate = ({emojiName, textareaText}) => (
+const createNewCommentTemplate = ({emojiName = '', textareaText = ''}, isSaving) => (
   `<div class="film-details__new-comment">
     <div class="film-details__add-emoji-label">
       ${emojiName ? `<img src="images/emoji/${emojiName}.png" width="55" height="55" alt="emoji-${emojiName}">` : ''}
     </div>
 
     <label class="film-details__comment-label">
-      <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${textareaText ? textareaText : ''}</textarea>
+      <textarea ${isSaving ? 'disabled' : ''} class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${textareaText ? textareaText : ''}</textarea>
     </label>
 
     <div class="film-details__emoji-list">
-      ${EMOJIS.map((emoji) => `<input class="film-details__emoji-item visually-hidden ${emojiName === emoji ? 'film-details__emoji-item--active' : ''}" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}">
+      ${EMOJIS.map((emoji) => `<input ${isSaving ? 'disabled' : ''} class="film-details__emoji-item visually-hidden ${emojiName === emoji ? 'film-details__emoji-item--active' : ''}" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}">
         <label class="film-details__emoji-label" for="emoji-${emoji}">
           <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="emoji">
         </label>`).join('')}
     </div>
-
-    <button class="film-details__submit-btn" type="button">Добавить</button>
   </div>`
 );
 
-const createCommentsTemplate = (commentItems) => {
+const createCommentsTemplate = (commentItems, idDeleting, deletingCommentId) => {
   const items = commentItems.map((item) => {
     const {emotion, comment, author, date, id} = item;
     return `<li class="film-details__comment" data-id="${id}">
@@ -119,7 +116,7 @@ const createCommentsTemplate = (commentItems) => {
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${author}</span>
           <span class="film-details__comment-day">${getDateWithTime(date)}</span>
-          <button class="film-details__comment-delete">Delete</button>
+          <button class="film-details__comment-delete" type="button">${idDeleting && deletingCommentId === id ? 'Deleting' : 'Delete'}</button>
         </p>
       </div>
     </li>`;
@@ -141,14 +138,17 @@ const createFilmDetailsTemplate = (filmData, commentItems) => {
     isWatched,
     isFavorite,
     additionalInfo,
-    newCommentData
+    newCommentData,
+    isSaving,
+    isDeleting,
+    deletingCommentId
   } = filmData;
 
   const posterTemplate = createPosterTemplate(poster);
   const infoTemplate = createInfoTemplate(title, rating, description, additionalInfo);
   const controlsTemplate = createControlsTemplate(isInWatchList, isWatched, isFavorite);
-  const commentsTemplate = commentItems.length ? createCommentsTemplate(commentItems) : 'Loading...';
-  const newCommentTemplate = createNewCommentTemplate(newCommentData);
+  const commentsTemplate = commentItems.length ? createCommentsTemplate(commentItems, isDeleting, deletingCommentId) : 'Loading...';
+  const newCommentTemplate = createNewCommentTemplate(newCommentData, isSaving);
 
   return `<section class="film-details">
     <form class="film-details__inner" action="" method="get">
@@ -196,7 +196,7 @@ export default class FilmDetailsView extends SmartView {
     newCommentData: {
       emojiName: null,
     },
-    scrollPosition: null
+    scrollPosition: null,
   });
 
   updateElement() {
@@ -207,10 +207,32 @@ export default class FilmDetailsView extends SmartView {
     }
   }
 
-  updateComments(commentItems) {
+  updateComments({commentItems, clearForm = false}) {
     this.#commentItems = commentItems;
-    this.updateElement(this.#commentItems);
-    this.restoreHandlers();
+
+    this.updateData({
+      newCommentData: clearForm ? {} : this._data.newCommentData,
+      isSaving: false,
+      isDeleting: false,
+      deletingCommentId: null
+    });
+  }
+
+  abort(id) {
+    if (id) {
+      this.shake(this.element.querySelector(`.film-details__comment[data-id="${id}"]`), () => {
+        this.updateData({
+          isDeleting: false,
+          deletingCommentId: null
+        });
+      });
+    } else {
+      this.shake(this.element, () => {
+        this.updateData({
+          isSaving: false
+        });
+      });
+    }
   }
 
   setCloseClickHandler = (callback) => {
@@ -267,6 +289,7 @@ export default class FilmDetailsView extends SmartView {
     this.setFavoriteClickHandler(this._callback.favoriteClick);
     this.setWatchedClickHandler(this._callback.watchedClick);
     this.setFormSubmitHandler(this._callback.formSubmit);
+    this.setDeleteClickHandler(this._callback.deleteClick);
   }
 
   #emojiClickHandler = (evt) => {
@@ -295,21 +318,25 @@ export default class FilmDetailsView extends SmartView {
 
   setFormSubmitHandler = (callback) => {
     this._callback.formSubmit = callback;
-    this.element.querySelector('.film-details__submit-btn').addEventListener('click', this.#formSubmitHandler);
+    document.addEventListener('keydown', this.#formSubmitHandler);
   }
 
   #formSubmitHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.formSubmit(this._parseNewCommentData());
+    if (evt.ctrlKey && evt.keyCode === 13) {
+      evt.preventDefault();
+
+      this._data.scrollPosition = this.element.scrollTop;
+      this._callback.formSubmit(this._parseNewCommentData());
+    }
   }
 
   _parseNewCommentData() {
+    const checkedEmoji = this.element.querySelector('.film-details__emoji-item--active');
+    const comment = this.element.querySelector('.film-details__comment-input').value;
+
     return {
-      id: nanoid(),
-      emoji: this.element.querySelector('.film-details__emoji-item--active').value,
-      text: this.element.querySelector('.film-details__comment-input').value,
-      author: 'John Doe',
-      date: '2019/12/31 23:59',
+      emotion: checkedEmoji ? checkedEmoji.value : '',
+      comment,
     };
   }
 }

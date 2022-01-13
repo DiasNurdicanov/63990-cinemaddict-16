@@ -1,7 +1,7 @@
 import {FILM_LISTS, SortType, UserAction, UpdateType, FilterType} from '../const.js';
 
 import {render, RenderPosition, remove, replace} from '../utils/render.js';
-import {sortByDate, sortByRating, removeItem} from '../utils/common.js';
+import {sortByDate, sortByRating} from '../utils/common.js';
 import {filter} from '../utils/filter.js';
 
 
@@ -14,6 +14,12 @@ import SortView from '../view/sort-view';
 
 const EXTRA_CARD_COUNT = 2;
 const CARD_COUNT_PER_STEP = 5;
+
+export const State = {
+  SAVING: 'SAVING',
+  DELETING: 'DELETING',
+  ABORTING: 'ABORTING'
+};
 
 export default class FilmsPresenter {
   #listsContainer = null;
@@ -213,8 +219,7 @@ export default class FilmsPresenter {
     this.#filmDetailsPopup.setDeleteClickHandler((update) => {
       this._handleViewAction({
         actionType: UserAction.DELETE_COMMENT,
-        updateType: UpdateType.PATCH,
-        cardData: {...cardData, comments: removeItem(cardData.comments, update.id)},
+        updateType: UpdateType.LOADED_COMMENTS,
         commentData: update
       });
     });
@@ -222,9 +227,9 @@ export default class FilmsPresenter {
     this.#filmDetailsPopup.setFormSubmitHandler((update) => {
       this._handleViewAction({
         actionType: UserAction.ADD_COMMENT,
-        updateType: UpdateType.PATCH,
-        cardData: {...cardData, comments: [...cardData.comments, update.id]},
-        commentData: update
+        updateType: UpdateType.LOADED_COMMENTS,
+        commentData: update,
+        cardId: cardData.id
       });
     });
   }
@@ -291,18 +296,47 @@ export default class FilmsPresenter {
     render(this.#filmsComponent, this.#sortComponent, RenderPosition.BEFOREEND);
   }
 
-  _handleViewAction = ({actionType, updateType, cardData, commentData}) => {
+  setPopupState(state, id) {
+    switch (state) {
+      case State.SAVING:
+        this.#filmDetailsPopup.updateData({
+          isSaving: true,
+        });
+        break;
+      case State.DELETING:
+        this.#filmDetailsPopup.updateData({
+          isDeleting: true,
+          deletingCommentId: id
+        });
+        break;
+      case State.ABORTING:
+        this.#filmDetailsPopup.abort(id);
+        break;
+    }
+  }
+
+  _handleViewAction = async ({actionType, updateType, cardData, commentData, cardId}) => {
     switch (actionType) {
       case UserAction.UPDATE_CARD:
         this.#filmsModel.updateCard(updateType, cardData);
         break;
       case UserAction.DELETE_COMMENT:
-        this.#commentsModel.deleteComment(commentData);
-        this.#filmsModel.updateCard(updateType, cardData);
+        this.setPopupState(State.DELETING, commentData.id);
+
+        try {
+          await this.#commentsModel.deleteComment(updateType, commentData);
+        } catch(err) {
+          this.setPopupState(State.ABORTING, commentData.id);
+        }
         break;
       case UserAction.ADD_COMMENT:
-        this.#commentsModel.addComment(commentData);
-        this.#filmsModel.updateCard(updateType, cardData);
+        this.setPopupState(State.SAVING);
+
+        try {
+          await this.#commentsModel.addComment(updateType, commentData, cardId);
+        } catch(err) {
+          this.setPopupState(State.ABORTING);
+        }
         break;
     }
   }
@@ -330,7 +364,7 @@ export default class FilmsPresenter {
         this._renderFilms();
         break;
       case UpdateType.LOADED_COMMENTS:
-        this.#filmDetailsPopup.updateComments(this.commentItems);
+        this.#filmDetailsPopup.updateComments(data);
         break;
     }
   }
