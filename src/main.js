@@ -1,8 +1,10 @@
-import {render, RenderPosition} from './utils/render.js';
+import {render, RenderPosition, remove} from './utils/render.js';
+import {MenuItem} from './const.js';
 
 import SiteMenuView from './view/site-menu-view.js';
 import ProfileView from './view/profile-view';
 import FooterStatsView from './view/footer-stats-view';
+import StatisticsView from './view/statistics-view.js';
 
 import FilmsModel from './model/films-model.js';
 import CommentsModel from './model/comments-model.js';
@@ -41,3 +43,27 @@ filmsPresenter.init();
 
 filmsModel.init();
 
+let statisticsComponent = null;
+
+const handleSiteMenuClick = (menuItem) => {
+  switch (menuItem) {
+    case MenuItem.FILMS:
+      remove(statisticsComponent);
+      filmsPresenter.init();
+      filterPresenter.init();
+      break;
+    case MenuItem.STATS:
+      // Скрыть фильтры
+      // Скрыть доску
+      // Показать статистику
+
+      filmsPresenter.destroy();
+      filterPresenter.destroy();
+      statisticsComponent = new StatisticsView(filmsModel.cardsData);
+      render(siteMainElement, statisticsComponent, RenderPosition.BEFOREEND);
+      break;
+  }
+};
+
+siteMenuComponent.setMenuClickHandler(handleSiteMenuClick);
+//filterPresenter.setMenuClickHandler(handleSiteMenuClick);

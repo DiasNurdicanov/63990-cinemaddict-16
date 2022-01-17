@@ -55,10 +55,6 @@ export default class FilmsPresenter {
 
     this.#commentsModel = commentsModel;
     this.#filterModel = filterModel;
-
-    this.#filmsModel.addObserver(this._handleModelEvent);
-    this.#filterModel.addObserver(this._handleModelEvent);
-    this.#commentsModel.addObserver(this._handleModelEvent);
   }
 
   get cardsData() {
@@ -81,6 +77,10 @@ export default class FilmsPresenter {
   }
 
   init() {
+    this.#filmsModel.addObserver(this._handleModelEvent);
+    this.#filterModel.addObserver(this._handleModelEvent);
+    this.#commentsModel.addObserver(this._handleModelEvent);
+
     render(this.#listsContainer, this.#filmsComponent, RenderPosition.BEFOREEND);
 
     this._renderFilms();
@@ -393,6 +393,17 @@ export default class FilmsPresenter {
     if (resetSortType) {
       this.#currentSortType = SortType.DEFAULT;
     }
+  }
+
+  destroy() {
+    this._clearBoard({resetRenderedTaskCount: true, resetSortType: true});
+
+    remove(this.#filmsComponent);
+    remove(this.#sortComponent);
+
+    this.#filmsModel.removeObserver(this._handleModelEvent);
+    this.#filterModel.removeObserver(this._handleModelEvent);
+    this.#commentsModel.removeObserver(this._handleModelEvent);
   }
 
   _renderLoading() {
