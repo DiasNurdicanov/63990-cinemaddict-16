@@ -1,5 +1,5 @@
 import AbstractView from './abstract-view.js';
-import {FilterType} from '../const.js';
+import {FilterType, MenuItem} from '../const.js';
 
 const createFilterItemTemplate = (filter, currentFilterType) => {
   const {name, count, title} = filter;
@@ -51,6 +51,25 @@ export default class SiteMenuView extends AbstractView {
 
   #filterTypeChangeHandler = (evt) => {
     evt.preventDefault();
-    this._callback.filterTypeChange(evt.target.closest('.main-navigation__item').dataset.filterType);
+    const item = evt.target.closest('.main-navigation__item');
+
+    if (item) {
+      this._callback.filterTypeChange(item.dataset.filterType);
+    }
+  }
+
+  setMenuClickHandler = (callback) => {
+    this._callback.menuClick = callback;
+    this.element.addEventListener('click', this.#menuClickHandler);
+  }
+
+  #menuClickHandler = (evt) => {
+    evt.preventDefault();
+
+    const item = evt.target.closest('.main-navigation__item');
+
+    if (item) {
+      this._callback.menuClick(MenuItem.FILMS);
+    }
   }
 }

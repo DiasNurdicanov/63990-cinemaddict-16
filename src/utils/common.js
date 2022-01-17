@@ -26,20 +26,6 @@ export const getYearFromDate = (date) => dayjs(date).format('YYYY');
 export const humanizeDate = (date) => dayjs(date).format('D MMMM YYYY');
 export const getDateWithTime = (date) => dayjs(date).format('YYYY/MM/D HH:mm');
 
-export const updateItem = (items, update) => {
-  const index = items.findIndex((item) => item.id === update.id);
-
-  if (index === -1) {
-    return items;
-  }
-
-  return [
-    ...items.slice(0, index),
-    update,
-    ...items.slice(index + 1),
-  ];
-};
-
 export const sortByDate= (cardA, cardB) => getYearFromDate(cardA.additionalInfo.releaseYear) - getYearFromDate(cardB.additionalInfo.releaseYear);
 
 export const sortByRating = (cardA, cardB) => cardA.rating - cardB.rating;
@@ -57,3 +43,5 @@ export const removeItem = (items, id) => {
     ...items.slice(index + 1),
   ];
 };
+
+export const makeItemsUniq = (items) => [...new Set(items)];

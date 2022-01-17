@@ -43,10 +43,17 @@ export default class FilterPresenter {
   }
 
   init() {
-    const filters = this.filters;
+    this.#filmsModel.addObserver(this._handleModelEvent);
+    this.#filterModel.addObserver(this._handleModelEvent);
+
+    this.render();
+  }
+
+  render() {
     const prevFilterComponent = this.#filterComponent;
 
-    this.#filterComponent = new FilterView(filters, this.#filterModel.filter);
+    this.#filterComponent = new FilterView(this.filters, this.#filterModel.filter);
+
     this.#filterComponent.setFilterTypeChangeHandler(this._handleFilterTypeChange);
 
     if (prevFilterComponent === null) {
@@ -56,9 +63,6 @@ export default class FilterPresenter {
 
     replace(this.#filterComponent, prevFilterComponent);
     remove(prevFilterComponent);
-
-    this.#filmsModel.addObserver(this._handleModelEvent);
-    this.#filterModel.addObserver(this._handleModelEvent);
   }
 
   _handleModelEvent = () => {
@@ -73,10 +77,14 @@ export default class FilterPresenter {
     this.#filterModel.setFilter(UpdateType.MAJOR, filterType);
   }
 
+  setMenuClickHandler = (callback) => {
+    this.#filterComponent.setMenuClickHandler(callback);
+  }
+
   destroy = () => {
     this.#filmsModel.removeObserver(this._handleModelEvent);
     this.#filterModel.removeObserver(this._handleModelEvent);
 
-    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.ALL);
+    this.render();
   }
 }

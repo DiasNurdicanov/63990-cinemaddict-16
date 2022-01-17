@@ -40,11 +40,9 @@ export default class FilmsModel extends AbstractObservable {
       const response = await this.#apiService.updateCard(update);
       const updatedCard = this.#adaptToClient(response);
 
-      this.#cardsData = [
-        ...this.#cardsData.slice(0, index),
-        updatedCard,
-        ...this.#cardsData.slice(index + 1),
-      ];
+      const newCardsData = this.#cardsData.slice();
+      newCardsData[index] = updatedCard;
+      this.#cardsData = newCardsData;
 
       this._notify(updateType, update);
 

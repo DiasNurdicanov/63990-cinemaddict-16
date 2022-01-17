@@ -133,7 +133,6 @@ const createFilmDetailsTemplate = (filmData, commentItems) => {
     rating,
     poster,
     description,
-    comments,
     isInWatchList,
     isWatched,
     isFavorite,
@@ -166,7 +165,7 @@ const createFilmDetailsTemplate = (filmData, commentItems) => {
 
       <div class="film-details__bottom-container">
         <section class="film-details__comments-wrap">
-          <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${comments.length}</span></h3>
+          <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentItems.length}</span></h3>
 
           ${commentsTemplate}
 
@@ -218,7 +217,7 @@ export default class FilmDetailsView extends SmartView {
     });
   }
 
-  abort(id) {
+  shakeComment(id) {
     if (id) {
       this.shake(this.element.querySelector(`.film-details__comment[data-id="${id}"]`), () => {
         this.updateData({
@@ -325,7 +324,15 @@ export default class FilmDetailsView extends SmartView {
     if (evt.ctrlKey && evt.keyCode === 13) {
       evt.preventDefault();
 
-      this._data.scrollPosition = this.element.scrollTop;
+      this._data = {
+        ...this._data,
+        newCommentData: {
+          emojiName: this._data.newCommentData.emojiName,
+          textareaText: this.element.querySelector('.film-details__comment-input').value
+        },
+        scrollPosition: this.element.scrollTop,
+      };
+
       this._callback.formSubmit(this._parseNewCommentData());
     }
   }

@@ -2,6 +2,7 @@ import {render, RenderPosition, remove} from './utils/render.js';
 import {MenuItem} from './const.js';
 
 import SiteMenuView from './view/site-menu-view.js';
+import StatsTriggerView from './view/stats-trigger-view';
 import ProfileView from './view/profile-view';
 import FooterStatsView from './view/footer-stats-view';
 import StatisticsView from './view/statistics-view.js';
@@ -22,9 +23,12 @@ const siteMainElement = document.querySelector('.main');
 const siteHeaderElement = document.querySelector('.header');
 const footerStatsWrapElement = document.querySelector('.footer__statistics');
 
+const statsTriggerComponent = new StatsTriggerView();
+
 const siteMenuComponent = new SiteMenuView();
 render(siteHeaderElement, new ProfileView(), RenderPosition.BEFOREEND);
 render(siteMainElement, siteMenuComponent, RenderPosition.BEFOREEND);
+render(siteMenuComponent, statsTriggerComponent, RenderPosition.BEFOREEND);
 render(footerStatsWrapElement, new FooterStatsView(), RenderPosition.BEFOREEND);
 
 const apiService = new ApiService(END_POINT, AUTHORIZATION);
@@ -48,7 +52,10 @@ let statisticsComponent = null;
 const handleSiteMenuClick = (menuItem) => {
   switch (menuItem) {
     case MenuItem.FILMS:
+      statsTriggerComponent.updateData({active: false});
+
       remove(statisticsComponent);
+
       filmsPresenter.init();
       filterPresenter.init();
       break;
@@ -61,9 +68,12 @@ const handleSiteMenuClick = (menuItem) => {
       filterPresenter.destroy();
       statisticsComponent = new StatisticsView(filmsModel.cardsData);
       render(siteMainElement, statisticsComponent, RenderPosition.BEFOREEND);
+      filterPresenter.setMenuClickHandler(handleSiteMenuClick);
+
+      statsTriggerComponent.updateData({active: true});
       break;
   }
 };
 
-siteMenuComponent.setMenuClickHandler(handleSiteMenuClick);
-//filterPresenter.setMenuClickHandler(handleSiteMenuClick);
+statsTriggerComponent.setMenuClickHandler(handleSiteMenuClick);
+

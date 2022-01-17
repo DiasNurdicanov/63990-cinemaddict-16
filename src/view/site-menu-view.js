@@ -2,9 +2,7 @@ import AbstractView from './abstract-view.js';
 import {MenuItem} from '../const.js';
 
 const createSiteMenuTemplate = () => (
-  `<nav class="main-navigation">
-    <a href="#stats" class="main-navigation__additional">Stats</a>
-  </nav>`
+  '<nav class="main-navigation"></nav>'
 );
 
 export default class SiteMenuView extends AbstractView {

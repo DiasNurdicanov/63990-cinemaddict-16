@@ -26,7 +26,7 @@ export default class CommentsModel extends AbstractObservable {
       this.#commentItems = [];
     }
 
-    this._notify(UpdateType.LOADED_COMMENTS, {commentItems: this.#commentItems});
+    this._notify(UpdateType.PATCH, {commentItems: this.#commentItems});
 
     return this.#commentItems;
   }
@@ -40,7 +40,7 @@ export default class CommentsModel extends AbstractObservable {
         ...this.#commentItems.slice(0, index),
         ...this.#commentItems.slice(index + 1),
       ];
-      this._notify(updateType, {commentItems: this.#commentItems});
+      this._notify(updateType, {commentItems: this.#commentItems, cardId});
     } catch(err) {
       throw new Error('Can\'t delete comment');
     }
@@ -50,7 +50,7 @@ export default class CommentsModel extends AbstractObservable {
     try {
       const response = await this.#apiService.addComment(update, cardId);
       this.#commentItems = [...response.comments];
-      this._notify(updateType, {commentItems: this.#commentItems, clearForm: true});
+      this._notify(updateType, {commentItems: this.#commentItems, clearForm: true, cardId});
     } catch(err) {
       throw new Error('Can\'t add comment');
     }

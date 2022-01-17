@@ -11,6 +11,7 @@ import LoadMoreView from '../view/load-more-button-view';
 import FilmCardView from '../view/film-card-view';
 import FilmDetailsView from '../view/film-details-view';
 import SortView from '../view/sort-view';
+import dayjs from 'dayjs';
 
 const EXTRA_CARD_COUNT = 2;
 const CARD_COUNT_PER_STEP = 5;
@@ -113,7 +114,7 @@ export default class FilmsPresenter {
       this._handleViewAction({
         actionType: UserAction.UPDATE_CARD,
         updateType: UpdateType.MINOR,
-        cardData: {...cardData, isWatched: !cardData.isWatched}
+        cardData: {...cardData, isWatched: !cardData.isWatched, watchedDate: dayjs().toDate()}
       });
     });
 
@@ -195,7 +196,7 @@ export default class FilmsPresenter {
     this.#filmDetailsPopup.setWatchlistClickHandler(() => {
       this._handleViewAction({
         actionType: UserAction.UPDATE_CARD,
-        updateType: UpdateType.PATCH,
+        updateType: UpdateType.MINOR,
         cardData: {...cardData, isInWatchList: !cardData.isInWatchList}
       });
     });
@@ -203,7 +204,7 @@ export default class FilmsPresenter {
     this.#filmDetailsPopup.setWatchedClickHandler(() => {
       this._handleViewAction({
         actionType: UserAction.UPDATE_CARD,
-        updateType: UpdateType.PATCH,
+        updateType: UpdateType.MINOR,
         cardData: {...cardData, isWatched: !cardData.isWatched}
       });
     });
@@ -211,7 +212,7 @@ export default class FilmsPresenter {
     this.#filmDetailsPopup.setFavoriteClickHandler(() => {
       this._handleViewAction({
         actionType: UserAction.UPDATE_CARD,
-        updateType: UpdateType.PATCH,
+        updateType: UpdateType.MINOR,
         cardData: {...cardData, isFavorite: !cardData.isFavorite}
       });
     });
@@ -219,15 +220,16 @@ export default class FilmsPresenter {
     this.#filmDetailsPopup.setDeleteClickHandler((update) => {
       this._handleViewAction({
         actionType: UserAction.DELETE_COMMENT,
-        updateType: UpdateType.LOADED_COMMENTS,
-        commentData: update
+        updateType: UpdateType.PATCH,
+        commentData: update,
+        cardId: cardData.id
       });
     });
 
     this.#filmDetailsPopup.setFormSubmitHandler((update) => {
       this._handleViewAction({
         actionType: UserAction.ADD_COMMENT,
-        updateType: UpdateType.LOADED_COMMENTS,
+        updateType: UpdateType.PATCH,
         commentData: update,
         cardId: cardData.id
       });
@@ -310,7 +312,7 @@ export default class FilmsPresenter {
         });
         break;
       case State.ABORTING:
-        this.#filmDetailsPopup.abort(id);
+        this.#filmDetailsPopup.shakeComment(id);
         break;
     }
   }
@@ -324,7 +326,7 @@ export default class FilmsPresenter {
         this.setPopupState(State.DELETING, commentData.id);
 
         try {
-          await this.#commentsModel.deleteComment(updateType, commentData);
+          await this.#commentsModel.deleteComment(updateType, commentData, cardId);
         } catch(err) {
           this.setPopupState(State.ABORTING, commentData.id);
         }
@@ -344,15 +346,19 @@ export default class FilmsPresenter {
   _handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this._renderFilmCard(data);
+        this.#filmDetailsPopup.updateComments(data);
+
+        if (data.cardId) {
+          this._updateCardComment(data);
+        }
+        break;
+      case UpdateType.MINOR:
+        this._clearBoard({resetRenderedCardCount: true});
+        this._renderFilms();
 
         if (this.#filmDetailsPopup) {
           this._createPopup(data);
         }
-        break;
-      case UpdateType.MINOR:
-        this._clearBoard();
-        this._renderFilms();
         break;
       case UpdateType.MAJOR:
         this._clearBoard({resetRenderedCardCount: true, resetSortType: true});
@@ -362,9 +368,6 @@ export default class FilmsPresenter {
         this.#isLoading = false;
         remove(this.#loadingComponent);
         this._renderFilms();
-        break;
-      case UpdateType.LOADED_COMMENTS:
-        this.#filmDetailsPopup.updateComments(data);
         break;
     }
   }
@@ -396,7 +399,7 @@ export default class FilmsPresenter {
   }
 
   destroy() {
-    this._clearBoard({resetRenderedTaskCount: true, resetSortType: true});
+    this._clearBoard({resetRenderedCardCount: true, resetSortType: true});
 
     remove(this.#filmsComponent);
     remove(this.#sortComponent);
@@ -404,10 +407,22 @@ export default class FilmsPresenter {
     this.#filmsModel.removeObserver(this._handleModelEvent);
     this.#filterModel.removeObserver(this._handleModelEvent);
     this.#commentsModel.removeObserver(this._handleModelEvent);
+
+    this.#filterModel.setFilter(UpdateType.MAJOR, null);
   }
 
   _renderLoading() {
     render(this.#filmsComponent, this.#loadingComponent, RenderPosition.AFTERBEGIN);
+  }
+
+  _updateCardComment(data) {
+    const card = this.#filmsModel.cardsData.find((item) => item.id === data.cardId);
+    const updatedCard = {
+      ...card,
+      comments: data.commentItems.map((comment) => comment.id)
+    };
+
+    this._renderFilmCard(updatedCard);
   }
 
 }
