@@ -6,6 +6,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import {FilterType} from '../const';
 import {filter} from '../utils/filter.js';
 import {makeItemsUniq} from '../utils/common';
+import {getRank} from '../utils/common.js';
 
 dayjs.extend(isBetween);
 
@@ -19,7 +20,8 @@ const FILTER_TYPES = {
 
 
 const getChartData = (cardsData, dateFrom, dateTo) => {
-  const filteredCards = filter[FilterType.HISTORY](cardsData).filter((card) => {
+  const filteredCards = filter[FilterType.HISTORY](cardsData);
+  const cardsInRange = filteredCards.filter((card) => {
     if (!dateFrom || !dateTo) {
       return true;
     }
@@ -34,7 +36,7 @@ const getChartData = (cardsData, dateFrom, dateTo) => {
     return false;
   });
 
-  const genres = filteredCards.map((card) => [...card.additionalInfo.genres]).flat();
+  const genres = cardsInRange.map((card) => [...card.additionalInfo.genres]).flat();
   const uniqGenres = makeItemsUniq(genres);
 
   const genresData = uniqGenres.map((uniqGenre) => ({
@@ -45,18 +47,19 @@ const getChartData = (cardsData, dateFrom, dateTo) => {
   const cardsByGenrecounts = genresData.map((item) => item.count);
 
   return {
-    filteredCards,
+    cardsInRange,
     uniqGenres,
     cardsByGenrecounts,
-    genresData
+    genresData,
+    watchedCardsCount: filteredCards.length
   };
 };
 
 const createStatisticsTemplate = ({cardsData, dateFrom, dateTo, currentFilter}) => {
-  const {filteredCards, genresData} = getChartData(cardsData, dateFrom, dateTo);
+  const {cardsInRange, genresData, watchedCardsCount} = getChartData(cardsData, dateFrom, dateTo);
 
-  const length = filteredCards.length;
-  const totalDuration = filteredCards.reduce((acc, card) => acc + card.additionalInfo.runtime, 0);
+  const length = cardsInRange.length;
+  const totalDuration = cardsInRange.reduce((acc, card) => acc + card.additionalInfo.runtime, 0);
 
   const hours = Math.floor(totalDuration / 60);
   const minutes = totalDuration - hours * 60;
@@ -66,7 +69,7 @@ const createStatisticsTemplate = ({cardsData, dateFrom, dateTo, currentFilter}) 
     <p class="statistic__rank">
       Your rank
       <img class="statistic__img" src="images/bitmap@2x.png" alt="Avatar" width="35" height="35">
-      <span class="statistic__rank-label">Movie buff</span>
+      <span class="statistic__rank-label">${getRank(watchedCardsCount)}</span>
     </p>
 
     <form action="https://echo.htmlacademy.ru/" method="get" class="statistic__filters">
@@ -118,7 +121,7 @@ const renderChart = (ctx, cardsData, dateFrom, dateTo) => {
   // Обязательно рассчитайте высоту canvas, она зависит от количества элементов диаграммы
   ctx.height = BAR_HEIGHT * uniqGenres.length;
 
-  const myChart = new Chart(ctx, {
+  return new Chart(ctx, {
     plugins: [ChartDataLabels],
     type: 'horizontalBar',
     data: {
