@@ -19,7 +19,14 @@ const getAdditionalInfoValue = (term, value) => {
     case 'genres': return value.map((genre) => `<span class="film-details__genre">${genre}</span>`).join('');
     case 'runtime': return convertTime(value);
     case 'releaseYear': return humanizeDate(value);
-    default: return value;
+    default: return Array.isArray(value) ? value.join(', ') : value;
+  }
+};
+
+const getAdditionalInfoTerm = (term, value) => {
+  switch(term) {
+    case 'genres': return value.length > 1 ? 'Genres' : 'Genre';
+    default: return capitalizeFirstLetter(term).split(/(?=[A-Z])/).join(' ');
   }
 };
 
@@ -35,7 +42,9 @@ const createAdditionalInfoTemplate = (data) => (
   `<table class="film-details__table">
       ${Object.entries(data).map(([term, value]) => `
         <tr class="film-details__row">
-          <td class="film-details__term">${capitalizeFirstLetter(term).split(/(?=[A-Z])/).join(' ')}</td>
+          <td class="film-details__term">
+            ${getAdditionalInfoTerm(term, value)}
+          </td>
           <td class="film-details__cell">
             ${getAdditionalInfoValue(term, value)}
           </td>
@@ -165,7 +174,7 @@ const createFilmDetailsTemplate = (filmData, commentItems) => {
 
       <div class="film-details__bottom-container">
         <section class="film-details__comments-wrap">
-          <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentItems.length}</span></h3>
+          <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentItems.length || 0}</span></h3>
 
           ${commentsTemplate}
 

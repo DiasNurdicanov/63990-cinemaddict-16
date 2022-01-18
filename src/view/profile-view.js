@@ -1,18 +1,5 @@
 import SmartView from './smart-view';
-
-const getRank = (count) => {
-  if (count <= 10) {
-    return 'Novice';
-  }
-
-  if (count >= 11 && count <= 20) {
-    return 'Fan';
-  }
-
-  if (count >= 21) {
-    return 'Movie buff';
-  }
-};
+import {getRank} from '../utils/common.js';
 
 const createProfileTemplate = (count) => {
   if (count === 0) {

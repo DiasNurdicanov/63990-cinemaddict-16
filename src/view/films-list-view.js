@@ -17,7 +17,7 @@ export const createFilmsListTemplate = ({title, isTitleHidden, isExtra, isEmpty}
     <h2 class="films-list__title ${isTitleHidden ? 'visually-hidden' : ''}">${isEmpty ? noTaskTextValue : title}</h2>
 
     ${!isEmpty ? '<div class="films-list__container"></div>' : ''}
-  </section>`
+  </section>`;
 };
 
 export default class FilmsListView extends AbstractView {
