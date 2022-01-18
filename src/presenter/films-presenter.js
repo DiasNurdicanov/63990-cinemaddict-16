@@ -12,6 +12,8 @@ import FilmCardView from '../view/film-card-view';
 import FilmDetailsView from '../view/film-details-view';
 import SortView from '../view/sort-view';
 import dayjs from 'dayjs';
+import FooterStatsView from '../view/footer-stats-view';
+import ProfileView from '../view/profile-view';
 
 const EXTRA_CARD_COUNT = 2;
 const CARD_COUNT_PER_STEP = 5;
@@ -24,9 +26,11 @@ export const State = {
 
 export default class FilmsPresenter {
   #listsContainer = null;
+  #footerStatsWrapElement = null;
   #filmsModel = null;
   #commentsModel = [];
   #filterModel = null;
+  #profileContainer = null;
 
   #filmCards = new Map();
   #filmDetailsPopup = null;
@@ -45,17 +49,20 @@ export default class FilmsPresenter {
 
   #sortComponent = null;
   #loadMoreButtonComponent = null;
+  #profileComponent = null;
 
   #loadingComponent = new FilmsListView(FILM_LISTS.loading);;
   #isLoading = true;
 
-  constructor(listsContainer, filmsModel, commentsModel, filterModel) {
+  constructor(listsContainer, filmsModel, commentsModel, filterModel, footerStatsWrapElement, profileContainer) {
     this.#listsContainer = listsContainer;
 
     this.#filmsModel = filmsModel;
 
     this.#commentsModel = commentsModel;
     this.#filterModel = filterModel;
+    this.#footerStatsWrapElement = footerStatsWrapElement;
+    this.#profileContainer = profileContainer;
   }
 
   get cardsData() {
@@ -359,6 +366,12 @@ export default class FilmsPresenter {
         if (this.#filmDetailsPopup) {
           this._createPopup(data);
         }
+
+        if (this.#profileComponent) {
+          this.#profileComponent.updateData({
+            count: filter[FilterType.HISTORY](this.cardsData).length
+          });
+        }
         break;
       case UpdateType.MAJOR:
         this._clearBoard({resetRenderedCardCount: true, resetSortType: true});
@@ -368,6 +381,10 @@ export default class FilmsPresenter {
         this.#isLoading = false;
         remove(this.#loadingComponent);
         this._renderFilms();
+        render(this.#footerStatsWrapElement, new FooterStatsView(this.cardsData.length), RenderPosition.BEFOREEND);
+
+        this.#profileComponent = new ProfileView(filter[FilterType.HISTORY](this.cardsData).length);
+        render(this.#profileContainer, this.#profileComponent, RenderPosition.BEFOREEND);
         break;
     }
   }

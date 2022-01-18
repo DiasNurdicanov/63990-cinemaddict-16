@@ -3,8 +3,8 @@ import {MenuItem} from './const.js';
 
 import SiteMenuView from './view/site-menu-view.js';
 import StatsTriggerView from './view/stats-trigger-view';
-import ProfileView from './view/profile-view';
-import FooterStatsView from './view/footer-stats-view';
+
+
 import StatisticsView from './view/statistics-view.js';
 
 import FilmsModel from './model/films-model.js';
@@ -26,10 +26,10 @@ const footerStatsWrapElement = document.querySelector('.footer__statistics');
 const statsTriggerComponent = new StatsTriggerView();
 
 const siteMenuComponent = new SiteMenuView();
-render(siteHeaderElement, new ProfileView(), RenderPosition.BEFOREEND);
+
 render(siteMainElement, siteMenuComponent, RenderPosition.BEFOREEND);
 render(siteMenuComponent, statsTriggerComponent, RenderPosition.BEFOREEND);
-render(footerStatsWrapElement, new FooterStatsView(), RenderPosition.BEFOREEND);
+
 
 const apiService = new ApiService(END_POINT, AUTHORIZATION);
 const filmsModel = new FilmsModel(apiService);
@@ -38,7 +38,7 @@ const commentsModel = new CommentsModel(apiService);
 
 const filterModel = new FilterModel();
 
-const filmsPresenter = new FilmsPresenter(siteMainElement, filmsModel, commentsModel, filterModel);
+const filmsPresenter = new FilmsPresenter(siteMainElement, filmsModel, commentsModel, filterModel, footerStatsWrapElement, siteHeaderElement);
 const filterPresenter = new FilterPresenter(siteMenuComponent, filterModel, filmsModel);
 
 
@@ -53,17 +53,11 @@ const handleSiteMenuClick = (menuItem) => {
   switch (menuItem) {
     case MenuItem.FILMS:
       statsTriggerComponent.updateData({active: false});
-
       remove(statisticsComponent);
-
       filmsPresenter.init();
       filterPresenter.init();
       break;
     case MenuItem.STATS:
-      // Скрыть фильтры
-      // Скрыть доску
-      // Показать статистику
-
       filmsPresenter.destroy();
       filterPresenter.destroy();
       statisticsComponent = new StatisticsView(filmsModel.cardsData);

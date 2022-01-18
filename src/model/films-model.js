@@ -47,7 +47,8 @@ export default class FilmsModel extends AbstractObservable {
       this._notify(updateType, update);
 
     } catch(err) {
-      throw new Error('Can\'t update task');
+      console.log(err)
+      throw new Error('Can\'t update card');
     }
   }
 

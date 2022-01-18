@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import SmartView from './smart-view.js';
-import Chart, { defaults } from 'chart.js';
+import Chart from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import {FilterType} from '../const';
 import {filter} from '../utils/filter.js';
@@ -14,7 +14,7 @@ const FILTER_TYPES = {
   TODAY: 'today',
   WEEK: 'week',
   MOUNTH: 'month',
-  YEAR: 'year'
+  YEAR: 'year',
 };
 
 

@@ -3,18 +3,18 @@ export const EMOJIS = ['smile', 'sleeping', 'puke', 'angry'];
 export const FILM_LISTS = {
   main: {
     title: 'All movies. Upcoming',
-    isTitleHidden: true
+    isTitleHidden: true,
   },
   topRated: {
     title: 'Top rated',
-    isExtra: true
+    isExtra: true,
   },
   mostCommented: {
     title: 'Most commented',
-    isExtra: true
+    isExtra: true,
   },
   empty: {
-    isEmpty: true
+    isEmpty: true,
   },
   loading: {
     title: 'Loading...',
@@ -30,7 +30,7 @@ export const SortType = {
 export const UserAction = {
   UPDATE_CARD: 'UPDATE_CARD',
   ADD_COMMENT: 'ADD_COMMENT',
-  DELETE_COMMENT: 'DELETE_COMMENT'
+  DELETE_COMMENT: 'DELETE_COMMENT',
 };
 
 export const UpdateType = {
@@ -44,7 +44,7 @@ export const FilterType = {
   ALL: 'all',
   WATCHLIST: 'watchlist',
   HISTORY: 'history',
-  FAVORITES: 'favorites'
+  FAVORITES: 'favorites',
 };
 
 export const MenuItem = {
