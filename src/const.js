@@ -18,7 +18,7 @@ export const FILM_LISTS = {
   },
   loading: {
     title: 'Loading...',
-  }
+  },
 };
 
 export const SortType = {
