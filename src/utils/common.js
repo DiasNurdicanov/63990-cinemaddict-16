@@ -1,7 +1,9 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(duration);
+dayjs.extend(relativeTime);
 
 export const getRandomInteger = (a = 0, b = 1) => {
   const lower = Math.ceil(Math.min(a, b));
@@ -24,25 +26,12 @@ export const convertTime = (minutes) => {
 
 export const getYearFromDate = (date) => dayjs(date).format('YYYY');
 export const humanizeDate = (date) => dayjs(date).format('D MMMM YYYY');
-export const getDateWithTime = (date) => dayjs(date).format('YYYY/MM/D HH:mm');
 
 export const sortByDate= (cardA, cardB) => getYearFromDate(cardB.additionalInfo.releaseYear) - getYearFromDate(cardA.additionalInfo.releaseYear);
 
 export const sortByRating = (cardA, cardB) => cardB.rating - cardA.rating;
 
-
-export const removeItem = (items, id) => {
-  const index = items.findIndex((item) => item === id);
-
-  if (index === -1) {
-    return items;
-  }
-
-  return [
-    ...items.slice(0, index),
-    ...items.slice(index + 1),
-  ];
-};
+export const sortByComments = (cardA, cardB) => cardB.comments.length - cardA.comments.length;
 
 export const makeItemsUniq = (items) => [...new Set(items)];
 
@@ -58,4 +47,9 @@ export const getRank = (count) => {
   if (count >= 21) {
     return 'Movie buff';
   }
+};
+
+export const getHumanizeDiffDate = (date) => {
+  const different = dayjs.duration(dayjs(date).diff(dayjs()));
+  return different.humanize(true);
 };

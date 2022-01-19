@@ -11,14 +11,24 @@ export default class FilmsModel extends AbstractObservable {
   }
 
   init = async () => {
+    await this.getCards();
+
+    this._notify(UpdateType.INIT);
+  }
+
+  getCards = async () => {
     try {
       const cards = await this.#apiService.cards;
       this.#cardsData = cards.map(this.#adaptToClient);
     } catch(err) {
       this.#cardsData = [];
     }
+  }
 
-    this._notify(UpdateType.INIT);
+  updateCards = async () => {
+    await this.getCards();
+
+    this._notify(UpdateType.MINOR);
   }
 
   get cardsData() {
@@ -49,6 +59,11 @@ export default class FilmsModel extends AbstractObservable {
     } catch(err) {
       throw new Error('Can\'t update card');
     }
+  }
+
+  getCard(id) {
+    const index = this.#cardsData.findIndex((card) => card.id === id);
+    return this.cardsData[index];
   }
 
 

@@ -18,7 +18,7 @@ export default class CommentsModel extends AbstractObservable {
     this.#apiService = apiService;
   }
 
-  getСommentItems = async (id) => {
+  getCommentItems = async (id) => {
     try {
       const comments = await this.#apiService.getComments(id);
       this.#commentItems = [...comments];
@@ -31,7 +31,7 @@ export default class CommentsModel extends AbstractObservable {
     return this.#commentItems;
   }
 
-  deleteComment = async (updateType, update, cardId) => {
+  deleteComment = async (update, cardId) => {
     const index = this.#commentItems.findIndex((comment) => comment.id === update.id);
 
     try {
@@ -40,17 +40,15 @@ export default class CommentsModel extends AbstractObservable {
         ...this.#commentItems.slice(0, index),
         ...this.#commentItems.slice(index + 1),
       ];
-      this._notify(updateType, {commentItems: this.#commentItems, cardId});
     } catch(err) {
       throw new Error('Can\'t delete comment');
     }
   }
 
-  addComment = async (updateType, update, cardId) => {
+  addComment = async (update, cardId) => {
     try {
       const response = await this.#apiService.addComment(update, cardId);
       this.#commentItems = [...response.comments];
-      this._notify(updateType, {commentItems: this.#commentItems, clearForm: true, cardId});
     } catch(err) {
       throw new Error('Can\'t add comment');
     }

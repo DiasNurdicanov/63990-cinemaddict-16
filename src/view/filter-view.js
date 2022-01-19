@@ -30,7 +30,7 @@ const createFilterTemplate = (filterItems, currentFilterType) => {
   </div>`;
 };
 
-export default class SiteMenuView extends AbstractView {
+export default class FilterView extends AbstractView {
   #filters = null;
   #currentFilter = null;
 

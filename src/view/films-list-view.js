@@ -22,7 +22,6 @@ export const createFilmsListTemplate = ({title, isTitleHidden, isExtra, isEmpty}
 
 export default class FilmsListView extends AbstractView {
   #props = null;
-  #container = null;
   #filterType = FilterType.ALL;
 
   constructor(props, filterType) {

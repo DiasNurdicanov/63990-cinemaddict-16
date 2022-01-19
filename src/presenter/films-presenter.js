@@ -1,7 +1,7 @@
 import {FILM_LISTS, SortType, UserAction, UpdateType, FilterType} from '../const.js';
 
 import {render, RenderPosition, remove, replace} from '../utils/render.js';
-import {sortByDate, sortByRating} from '../utils/common.js';
+import {sortByDate, sortByRating, sortByComments} from '../utils/common.js';
 import {filter} from '../utils/filter.js';
 
 
@@ -44,7 +44,7 @@ export default class FilmsPresenter {
 
   #mainFilmsListComponent = null;
   #topRatedComponent = new FilmsListView(FILM_LISTS.topRated);
-  #mostCommentedComponent = new FilmsListView(FILM_LISTS.mostCommented);
+  #mostCommentedComponent = null;
   #noFilmsComponent = null;
 
   #sortComponent = null;
@@ -53,6 +53,8 @@ export default class FilmsPresenter {
 
   #loadingComponent = new FilmsListView(FILM_LISTS.loading);;
   #isLoading = true;
+
+  #popupData = null;
 
   constructor(listsContainer, filmsModel, commentsModel, filterModel, footerStatsWrapElement, profileContainer) {
     this.#listsContainer = listsContainer;
@@ -78,6 +80,10 @@ export default class FilmsPresenter {
     }
 
     return filteredCards;
+  }
+
+  get sourceCardsData() {
+    return this.#filmsModel.cardsData;
   }
 
   get commentItems() {
@@ -106,6 +112,7 @@ export default class FilmsPresenter {
     this.#filmCards.set(cardData.id, filmCardComponent);
 
     filmCardComponent.setClickHandler(() => {
+      this.#popupData = cardData.id;
       this._createPopup(cardData);
     });
 
@@ -187,7 +194,7 @@ export default class FilmsPresenter {
       }
     };
 
-    const commentItems = this.#commentsModel.getСommentItems(cardData.id);
+    const commentItems = this.#commentsModel.getCommentItems(cardData.id);
 
     this.#filmDetailsPopup = new FilmDetailsView(cardData, commentItems);
     render(document.body, this.#filmDetailsPopup, RenderPosition.BEFOREEND);
@@ -227,19 +234,21 @@ export default class FilmsPresenter {
     this.#filmDetailsPopup.setDeleteClickHandler((update) => {
       this._handleViewAction({
         actionType: UserAction.DELETE_COMMENT,
-        updateType: UpdateType.PATCH,
         commentData: update,
-        cardId: cardData.id
+        cardId: cardData.id,
       });
+
+      this._popupScrollPosition = this.#filmDetailsPopup.element.scrollTop;
     });
 
     this.#filmDetailsPopup.setFormSubmitHandler((update) => {
       this._handleViewAction({
         actionType: UserAction.ADD_COMMENT,
-        updateType: UpdateType.PATCH,
         commentData: update,
-        cardId: cardData.id
+        cardId: cardData.id,
       });
+
+      this._popupScrollPosition = this.#filmDetailsPopup.element.scrollTop;
     });
   }
 
@@ -253,17 +262,17 @@ export default class FilmsPresenter {
   _renderFilmLists() {
     const cardsCount = this.cardsData.length;
     const cards = this.cardsData.slice(0, Math.min(cardsCount, this.#renderedFilmCardsCount));
-    const extraCards = this.cardsData.slice(0, EXTRA_CARD_COUNT);
+    const topRatedCards = this.sourceCardsData.sort(sortByRating).slice(0, EXTRA_CARD_COUNT);
 
     this.#mainFilmsListComponent = new FilmsListView(FILM_LISTS.main);
 
     render(this.#filmsComponent, this.#mainFilmsListComponent, RenderPosition.BEFOREEND);
     render(this.#filmsComponent, this.#topRatedComponent, RenderPosition.BEFOREEND);
-    render(this.#filmsComponent, this.#mostCommentedComponent, RenderPosition.BEFOREEND);
 
     this._renderFilmCards(cards, this.#mainFilmsListComponent.container);
-    this._renderFilmCards(extraCards, this.#topRatedComponent.container);
-    this._renderFilmCards(extraCards, this.#mostCommentedComponent.container);
+    this._renderFilmCards(topRatedCards, this.#topRatedComponent.container);
+
+    this._renderedMostCommentedCards();
 
     if (this.cardsData.length > this.#renderedFilmCardsCount) {
       this._renderLoadMoreButton();
@@ -333,7 +342,8 @@ export default class FilmsPresenter {
         this.setPopupState(State.DELETING, commentData.id);
 
         try {
-          await this.#commentsModel.deleteComment(updateType, commentData, cardId);
+          await this.#commentsModel.deleteComment(commentData, cardId);
+          await this.#filmsModel.updateCards();
         } catch(err) {
           this.setPopupState(State.ABORTING, commentData.id);
         }
@@ -342,7 +352,8 @@ export default class FilmsPresenter {
         this.setPopupState(State.SAVING);
 
         try {
-          await this.#commentsModel.addComment(updateType, commentData, cardId);
+          await this.#commentsModel.addComment(commentData, cardId);
+          await this.#filmsModel.updateCards();
         } catch(err) {
           this.setPopupState(State.ABORTING);
         }
@@ -353,23 +364,19 @@ export default class FilmsPresenter {
   _handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this.#filmDetailsPopup.updateComments(data);
-
-        if (data.cardId) {
-          this._updateCardComment(data);
-        }
+        this.#filmDetailsPopup.updateComments(data, this._popupScrollPosition);
         break;
       case UpdateType.MINOR:
-        this._clearBoard({resetRenderedCardCount: true});
+        this._clearBoard();
         this._renderFilms();
 
         if (this.#filmDetailsPopup) {
-          this._createPopup(data);
+          this._createPopup(this.#filmsModel.getCard(this.#popupData));
         }
 
         if (this.#profileComponent) {
           this.#profileComponent.updateData({
-            count: filter[FilterType.HISTORY](this.cardsData).length
+            count: filter[FilterType.HISTORY](this.#filmsModel.cardsData).length
           });
         }
         break;
@@ -381,6 +388,7 @@ export default class FilmsPresenter {
         this.#isLoading = false;
         remove(this.#loadingComponent);
         this._renderFilms();
+
         render(this.#footerStatsWrapElement, new FooterStatsView(this.cardsData.length), RenderPosition.BEFOREEND);
 
         this.#profileComponent = new ProfileView(filter[FilterType.HISTORY](this.cardsData).length);
@@ -432,14 +440,13 @@ export default class FilmsPresenter {
     render(this.#filmsComponent, this.#loadingComponent, RenderPosition.AFTERBEGIN);
   }
 
-  _updateCardComment(data) {
-    const card = this.#filmsModel.cardsData.find((item) => item.id === data.cardId);
-    const updatedCard = {
-      ...card,
-      comments: data.commentItems.map((comment) => comment.id)
-    };
+  _renderedMostCommentedCards() {
+    remove(this.#mostCommentedComponent);
 
-    this._renderFilmCard(updatedCard);
+    this.#mostCommentedComponent = new FilmsListView(FILM_LISTS.mostCommented);
+    render(this.#filmsComponent, this.#mostCommentedComponent, RenderPosition.BEFOREEND);
+
+    const mostCommentedCards = this.sourceCardsData.sort(sortByComments).slice(0, EXTRA_CARD_COUNT);
+    this._renderFilmCards(mostCommentedCards, this.#mostCommentedComponent.container);
   }
-
 }

@@ -21,20 +21,9 @@ const FILTER_TYPES = {
 
 const getChartData = (cardsData, dateFrom, dateTo) => {
   const filteredCards = filter[FilterType.HISTORY](cardsData);
-  const cardsInRange = filteredCards.filter((card) => {
-    if (!dateFrom || !dateTo) {
-      return true;
-    }
-
-    if (
-      dayjs(card.watchedDate).isSame(dateFrom, 'day') ||
-      dayjs(card.watchedDate).isBetween(dateFrom, dateTo) ||
-      dayjs(card.watchedDate).isSame(dateTo, 'day')) {
-      return true;
-    }
-
-    return false;
-  });
+  const cardsInRange = (dateFrom && dateTo) ?
+    filteredCards.filter((card) => dayjs(card.watchedDate).isBetween(dateFrom, dateTo)) :
+    filteredCards;
 
   const genres = cardsInRange.map((card) => [...card.additionalInfo.genres]).flat();
   const uniqGenres = makeItemsUniq(genres);
@@ -232,29 +221,29 @@ export default class StatisticsView extends SmartView {
         break;
       case FILTER_TYPES.TODAY:
         this.updateData({
-          dateFrom: dayjs(),
-          dateTo: dayjs(),
+          dateFrom: dayjs().subtract(1, 'day').toDate(),
+          dateTo: dayjs().add(1, 'day').toDate(),
           currentFilter: FILTER_TYPES.TODAY
         });
         break;
       case FILTER_TYPES.WEEK:
         this.updateData({
-          dateFrom: dayjs().subtract(6, 'day').toDate(),
-          dateTo: dayjs().toDate(),
+          dateFrom: dayjs().subtract(7, 'day').toDate(),
+          dateTo: dayjs().add(1, 'day').toDate(),
           currentFilter: FILTER_TYPES.WEEK
         });
         break;
       case FILTER_TYPES.MOUNTH:
         this.updateData({
-          dateFrom: dayjs().subtract(30, 'day').toDate(),
-          dateTo: dayjs().toDate(),
+          dateFrom: dayjs().subtract(31, 'day').toDate(),
+          dateTo: dayjs().add(1, 'day').toDate(),
           currentFilter: FILTER_TYPES.MOUNTH
         });
         break;
       case FILTER_TYPES.YEAR:
         this.updateData({
-          dateFrom: dayjs().subtract(365, 'day').toDate(),
-          dateTo: dayjs().toDate(),
+          dateFrom: dayjs().subtract(366, 'day').toDate(),
+          dateTo: dayjs().add(1, 'day').toDate(),
           currentFilter: FILTER_TYPES.YEAR
         });
         break;

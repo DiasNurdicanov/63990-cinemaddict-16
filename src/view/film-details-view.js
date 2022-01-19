@@ -1,5 +1,5 @@
 import {EMOJIS} from '../const.js';
-import {capitalizeFirstLetter, convertTime, humanizeDate, getDateWithTime} from '../utils/common.js';
+import {capitalizeFirstLetter, convertTime, humanizeDate, getHumanizeDiffDate} from '../utils/common.js';
 import SmartView from './smart-view.js';
 
 const BLANK_CARD = {
@@ -124,7 +124,7 @@ const createCommentsTemplate = (commentItems, idDeleting, deletingCommentId) => 
         <p class="film-details__comment-text">${comment}</p>
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${author}</span>
-          <span class="film-details__comment-day">${getDateWithTime(date)}</span>
+          <span class="film-details__comment-day">${getHumanizeDiffDate(date)}</span>
           <button class="film-details__comment-delete" type="button">${idDeleting && deletingCommentId === id ? 'Deleting' : 'Delete'}</button>
         </p>
       </div>
@@ -215,14 +215,15 @@ export default class FilmDetailsView extends SmartView {
     }
   }
 
-  updateComments({commentItems, clearForm = false}) {
+  updateComments({commentItems, clearForm = false}, scrollPosition) {
     this.#commentItems = commentItems;
 
     this.updateData({
       newCommentData: clearForm ? {} : this._data.newCommentData,
       isSaving: false,
       isDeleting: false,
-      deletingCommentId: null
+      deletingCommentId: null,
+      scrollPosition
     });
   }
 
@@ -319,6 +320,8 @@ export default class FilmDetailsView extends SmartView {
 
   #deleteClickHandler = (evt) => {
     evt.preventDefault();
+    this._data.scrollPosition = this.element.scrollTop;
+
     this._callback.deleteClick({
       id: evt.target.closest('.film-details__comment').dataset.id
     });
@@ -326,7 +329,7 @@ export default class FilmDetailsView extends SmartView {
 
   setFormSubmitHandler = (callback) => {
     this._callback.formSubmit = callback;
-    document.addEventListener('keydown', this.#formSubmitHandler);
+    this.element.addEventListener('keydown', this.#formSubmitHandler);
   }
 
   #formSubmitHandler = (evt) => {
