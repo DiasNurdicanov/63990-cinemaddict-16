@@ -44,7 +44,7 @@ export default class FilmsPresenter {
 
   #mainFilmsListComponent = null;
   #topRatedComponent = new FilmsListView(FILM_LISTS.topRated);
-  #mostCommentedComponent = null;
+  #mostCommentedComponent = new FilmsListView(FILM_LISTS.mostCommented);
   #noFilmsComponent = null;
 
   #sortComponent = null;
@@ -262,17 +262,26 @@ export default class FilmsPresenter {
   _renderFilmLists() {
     const cardsCount = this.cardsData.length;
     const cards = this.cardsData.slice(0, Math.min(cardsCount, this.#renderedFilmCardsCount));
-    const topRatedCards = this.sourceCardsData.sort(sortByRating).slice(0, EXTRA_CARD_COUNT);
+
+    const isEveryHasRating = this.sourceCardsData.every((card) => card.rating > 0);
+    const isEveryHasComments = this.sourceCardsData.every((card) => card.comments.length > 0);
 
     this.#mainFilmsListComponent = new FilmsListView(FILM_LISTS.main);
 
     render(this.#filmsComponent, this.#mainFilmsListComponent, RenderPosition.BEFOREEND);
-    render(this.#filmsComponent, this.#topRatedComponent, RenderPosition.BEFOREEND);
-
     this._renderFilmCards(cards, this.#mainFilmsListComponent.container);
-    this._renderFilmCards(topRatedCards, this.#topRatedComponent.container);
 
-    this._renderedMostCommentedCards();
+    if (isEveryHasRating) {
+      const topRatedCards = this.sourceCardsData.sort(sortByRating).slice(0, EXTRA_CARD_COUNT);
+      render(this.#filmsComponent, this.#topRatedComponent, RenderPosition.BEFOREEND);
+      this._renderFilmCards(topRatedCards, this.#topRatedComponent.container);
+    }
+
+    if (isEveryHasComments) {
+      const mostCommentedCards = this.sourceCardsData.sort(sortByComments).slice(0, EXTRA_CARD_COUNT);
+      render(this.#filmsComponent, this.#mostCommentedComponent, RenderPosition.BEFOREEND);
+      this._renderFilmCards(mostCommentedCards, this.#mostCommentedComponent.container);
+    }
 
     if (this.cardsData.length > this.#renderedFilmCardsCount) {
       this._renderLoadMoreButton();
@@ -438,15 +447,5 @@ export default class FilmsPresenter {
 
   _renderLoading() {
     render(this.#filmsComponent, this.#loadingComponent, RenderPosition.AFTERBEGIN);
-  }
-
-  _renderedMostCommentedCards() {
-    remove(this.#mostCommentedComponent);
-
-    this.#mostCommentedComponent = new FilmsListView(FILM_LISTS.mostCommented);
-    render(this.#filmsComponent, this.#mostCommentedComponent, RenderPosition.BEFOREEND);
-
-    const mostCommentedCards = this.sourceCardsData.sort(sortByComments).slice(0, EXTRA_CARD_COUNT);
-    this._renderFilmCards(mostCommentedCards, this.#mostCommentedComponent.container);
   }
 }
